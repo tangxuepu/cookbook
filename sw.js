@@ -1,5 +1,5 @@
 // 简单缓存，离线可用
-const CACHE = 'cookbook-v1';
+const CACHE = 'cookbook-v2';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
