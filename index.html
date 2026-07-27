@@ -5,22 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#f97316">
+  <meta name="theme-color" content="#0E6973">
   <title>做饭助手</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
   <style>
     :root {
-      --orange: #f97316;
-      --orange-light: #fed7aa;
-      --orange-dark: #c2410c;
-      --bg: #fff7ed;
+      --teal: #0E6973;
+      --teal-light: #118C8C;
+      --sky: #BAD9CE;
+      --sky-light: #d9f0e8;
+      --yellow: #F2BB16;
+      --gold: #BF820F;
+      --bg: #f5faf8;
       --card: #ffffff;
-      --text: #1c1917;
-      --text-secondary: #78716c;
-      --border: #e7e5e4;
-      --danger: #ef4444;
-      --success: #22c55e;
+      --text: #1a1a1a;
+      --text-secondary: #5a7a76;
+      --border: #dce8e4;
+      --danger: #e05555;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -33,7 +35,7 @@
 
     /* Header */
     header {
-      background: var(--orange);
+      background: var(--teal);
       color: white;
       padding: 16px 20px;
       display: flex;
@@ -42,23 +44,25 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 8px rgba(249,115,22,0.3);
+      box-shadow: 0 2px 12px rgba(14,105,115,0.25);
     }
-    header h1 { font-size: 20px; font-weight: 600; }
-    .header-actions { display: flex; gap: 12px; }
+    header h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+    .header-actions { display: flex; gap: 10px; }
     .header-btn {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.18);
       border: none;
       color: white;
       font-size: 13px;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
       cursor: pointer;
+      transition: background 0.15s;
     }
+    .header-btn:active { background: rgba(255,255,255,0.3); }
 
     /* Search */
     .search-bar {
-      padding: 12px 16px;
+      padding: 14px 16px;
       background: white;
       border-bottom: 1px solid var(--border);
     }
@@ -72,381 +76,9 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    .search-bar input:focus { border-color: var(--orange); }
+    .search-bar input:focus { border-color: var(--teal); }
 
-    /* Recipe List */
-    .recipe-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
-    .recipe-card {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      border: 1px solid var(--border);
-    }
-    .recipe-card:active { transform: scale(0.98); }
-    .recipe-card-title {
-      font-size: 17px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .recipe-card-meta {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-    .recipe-card-tags {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-    .tag {
-      font-size: 12px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: var(--orange-light);
-      color: var(--orange-dark);
-    }
-    .tag.no-image { background: #f1f5f9; color: #64748b; }
-    .tag.empty { background: #f1f5f9; color: #94a3b8; }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-secondary);
-    }
-    .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 15px; margin-bottom: 16px; }
-    .empty-state button {
-      background: var(--orange);
-      color: white;
-      border: none;
-      padding: 12px 28px;
-      border-radius: 24px;
-      font-size: 15px;
-      cursor: pointer;
-    }
-
-    /* FAB */
-    .fab {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--orange);
-      color: white;
-      border: none;
-      font-size: 28px;
-      box-shadow: 0 4px 16px rgba(249,115,22,0.5);
-      cursor: pointer;
-      z-index: 200;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* Modal Overlay */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 300;
-      align-items: flex-end;
-      justify-content: center;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal {
-      background: white;
-      width: 100%;
-      max-width: 600px;
-      border-radius: 20px 20px 0 0;
-      max-height: 92dvh;
-      overflow-y: auto;
-      padding: 24px 20px 32px;
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .modal-header h2 { font-size: 18px; }
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 24px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      padding: 4px;
-    }
-
-    /* Form */
-    .form-group { margin-bottom: 18px; }
-    .form-group label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 6px;
-    }
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 15px;
-      font-family: inherit;
-      background: #fafaf9;
-      outline: none;
-      resize: none;
-    }
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus { border-color: var(--orange); background: white; }
-    .form-group textarea { min-height: 100px; }
-    .form-group small { display: block; margin-top: 4px; font-size: 12px; color: var(--text-secondary); }
-
-    .step-row {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      margin-bottom: 8px;
-    }
-    .step-num {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--orange);
-      color: white;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 8px;
-    }
-    .step-row textarea { flex: 1; min-height: 60px; }
-    .step-del {
-      background: #fee2e2;
-      color: var(--danger);
-      border: none;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 8px;
-      flex-shrink: 0;
-    }
-    .add-step-btn {
-      background: none;
-      border: 1.5px dashed var(--border);
-      color: var(--text-secondary);
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-top: 4px;
-    }
-    .add-step-btn:hover { border-color: var(--orange); color: var(--orange); }
-
-    .btn-primary {
-      width: 100%;
-      background: var(--orange);
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .btn-secondary {
-      width: 100%;
-      background: white;
-      color: var(--text);
-      border: 1.5px solid var(--border);
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .btn-danger {
-      background: #fee2e2;
-      color: var(--danger);
-      border: none;
-      padding: 10px 16px;
-      border-radius: 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    /* Detail View */
-    .detail-view {
-      display: none;
-      padding: 16px;
-    }
-    .detail-view.active { display: block; }
-    .list-view.hidden { display: none; }
-
-    .detail-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-    }
-    .detail-title { font-size: 24px; font-weight: 700; }
-    .detail-actions { display: flex; gap: 8px; }
-    .detail-section {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-    }
-    .detail-section-title {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .detail-source { font-size: 14px; }
-    .detail-source a { color: var(--orange); word-break: break-all; }
-    .detail-source img { max-width: 100%; border-radius: 8px; margin-top: 8px; }
-
-    .step-item {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .step-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .step-item-num {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: var(--orange-light);
-      color: var(--orange-dark);
-      font-size: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .step-item-text { font-size: 15px; line-height: 1.6; flex: 1; }
-
-    .reflection-item {
-      background: #fff7ed;
-      border-left: 3px solid var(--orange);
-      padding: 10px 14px;
-      border-radius: 0 8px 8px 0;
-      margin-bottom: 8px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .reflection-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
-    .pits-item {
-      background: #fef2f2;
-      border-left: 3px solid var(--danger);
-      padding: 10px 14px;
-      border-radius: 0 8px 8px 0;
-      margin-bottom: 6px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .pits-item::before { content: "⚠️ "; }
-
-    /* Reflection Form */
-    .add-reflection {
-      margin-top: 12px;
-    }
-    .toggle-section {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      padding: 8px 0;
-    }
-    .toggle-section h3 { font-size: 14px; color: var(--text-secondary); }
-    .toggle-arrow { transition: transform 0.2s; font-size: 18px; color: var(--text-secondary); }
-    .toggle-section.open .toggle-arrow { transform: rotate(180deg); }
-    .toggle-content { display: none; }
-    .toggle-content.open { display: block; }
-
-    /* Import/Export */
-    .data-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-    .data-actions button {
-      flex: 1;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 13px;
-      cursor: pointer;
-      border: 1.5px solid var(--border);
-      background: white;
-      color: var(--text);
-    }
-    #import-file { display: none; }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #1c1917;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 24px;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.3s, transform 0.3s;
-      z-index: 500;
-      pointer-events: none;
-      white-space: nowrap;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* Back button */
-    .back-btn {
-      background: none;
-      border: none;
-      color: var(--orange);
-      font-size: 28px;
-      cursor: pointer;
-      padding: 4px 8px 4px 0;
-      line-height: 1;
-    }
-    .back-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Category tabs */
+    /* Category Tabs */
     .category-tabs {
       display: flex;
       gap: 8px;
@@ -467,15 +99,294 @@
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
+      transition: all 0.15s;
     }
     .tab-btn.active {
-      background: var(--orange);
+      background: var(--teal);
       color: white;
-      border-color: var(--orange);
+      border-color: var(--teal);
     }
 
-    .no-pits { color: var(--text-secondary); font-size: 14px; padding: 8px 0; }
-    .no-reflections { color: var(--text-secondary); font-size: 14px; padding: 8px 0; }
+    /* Recipe List */
+    .recipe-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .recipe-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: transform 0.1s;
+      border: 1px solid var(--border);
+    }
+    .recipe-card:active { transform: scale(0.98); }
+    .recipe-card-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+    .recipe-card-meta { font-size: 13px; color: var(--text-secondary); }
+    .recipe-card-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .tag {
+      font-size: 12px; padding: 3px 10px; border-radius: 20px;
+      background: var(--sky-light); color: var(--teal);
+    }
+
+    /* Empty State */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; margin-bottom: 16px; line-height: 1.6; }
+    .empty-state button {
+      background: var(--teal); color: white; border: none;
+      padding: 12px 28px; border-radius: 24px; font-size: 15px; cursor: pointer;
+    }
+
+    /* FAB */
+    .fab {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--yellow); color: white; border: none; font-size: 28px;
+      box-shadow: 0 4px 16px rgba(242,187,22,0.45); cursor: pointer; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s;
+    }
+    .fab:active { transform: scale(0.92); }
+
+    /* Back button */
+    .back-header {
+      padding: 12px 16px 0;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .back-btn {
+      background: none; border: none; color: var(--teal);
+      font-size: 16px; cursor: pointer; padding: 6px 4px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .back-btn span { font-size: 14px; color: var(--text-secondary); }
+
+    /* Detail View */
+    .detail-view { display: none; }
+    .detail-view.active { display: block; }
+    .list-view.hidden { display: none; }
+
+    .detail-title-row {
+      padding: 8px 16px 0;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .detail-title { font-size: 24px; font-weight: 700; color: var(--teal); }
+    .detail-actions { display: flex; gap: 6px; }
+    .btn-delete {
+      background: none; border: 1.5px solid var(--danger); color: var(--danger);
+      padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
+    }
+    .btn-edit {
+      background: var(--sky-light); border: none; color: var(--teal);
+      padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
+    }
+
+    /* Detail Section */
+    .detail-section {
+      background: var(--card); border-radius: 14px; padding: 16px;
+      margin: 0 16px 12px; border: 1px solid var(--border);
+    }
+    .detail-section-title {
+      font-size: 14px; font-weight: 700; color: var(--teal-light);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Source Collapse */
+    .source-collapsed {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; padding: 4px 0; color: var(--text-secondary); font-size: 14px;
+    }
+    .source-collapsed:hover { color: var(--teal); }
+    .source-collapsed .arrow { font-size: 12px; transition: transform 0.2s; }
+    .source-expanded { display: none; margin-top: 6px; }
+    .source-expanded.show { display: block; }
+    .source-link {
+      word-break: break-all; font-size: 14px; color: var(--teal); line-height: 1.6;
+    }
+    .source-link a { color: var(--teal); }
+    .btn-copy {
+      display: inline-block; margin-top: 6px; padding: 5px 14px;
+      background: var(--sky-light); color: var(--teal); border: none;
+      border-radius: 14px; font-size: 13px; cursor: pointer;
+    }
+    .btn-copy:active { background: var(--sky); }
+
+    /* Steps in Detail */
+    .step-card {
+      border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+      margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
+      background: white;
+    }
+    .step-card:last-child { margin-bottom: 0; }
+    .step-card.expanded {
+      border-color: var(--yellow); background: #fffdf5;
+      box-shadow: 0 2px 8px rgba(242,187,22,0.15);
+    }
+    .step-card-header { display: flex; gap: 10px; align-items: flex-start; }
+    .step-num {
+      width: 28px; height: 28px; min-width: 28px; border-radius: 50%;
+      background: var(--sky-light); color: var(--teal);
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-main { font-size: 16px; font-weight: 600; line-height: 1.5; flex: 1; }
+    .step-indicator {
+      font-size: 12px; color: var(--text-secondary); margin-top: 2px;
+    }
+    .step-detail {
+      display: none; margin-top: 10px; padding: 10px 12px;
+      background: #fefce8; border-radius: 8px;
+      font-size: 15px; line-height: 1.7; color: #5c5c3a;
+    }
+    .step-card.expanded .step-detail { display: block; }
+
+    /* Pits & Reflections */
+    .pit-item {
+      background: #fef5f5; border-left: 3px solid var(--danger);
+      padding: 10px 14px; border-radius: 0 8px 8px 0;
+      margin-bottom: 6px; font-size: 14px; line-height: 1.6;
+    }
+    .ref-item {
+      background: #f5faf8; border-left: 3px solid var(--teal-light);
+      padding: 10px 14px; border-radius: 0 8px 8px 0;
+      margin-bottom: 6px; line-height: 1.6;
+    }
+    .ref-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 3px; }
+    .no-data { color: var(--text-secondary); font-size: 14px; padding: 4px 0; }
+
+    /* Reflection Form */
+    .add-reflection { margin-top: 12px; }
+    .toggle-section {
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; padding: 8px 0; color: var(--text-secondary);
+      font-size: 14px; font-weight: 600;
+    }
+    .toggle-arrow { font-size: 14px; transition: transform 0.2s; }
+    .toggle-section.open .toggle-arrow { transform: rotate(180deg); }
+    .toggle-content { display: none; }
+    .toggle-content.show { display: block; }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 300;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white; width: 100%; max-width: 600px;
+      border-radius: 20px 20px 0 0; max-height: 90dvh;
+      overflow-y: auto; padding: 24px 20px 32px;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 18px; color: var(--teal); }
+    .modal-close {
+      background: none; border: none; font-size: 26px;
+      color: var(--text-secondary); cursor: pointer; padding: 4px; line-height: 1;
+    }
+
+    /* Confirm Dialog */
+    .confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 400;
+      align-items: center; justify-content: center;
+    }
+    .confirm-overlay.active { display: flex; }
+    .confirm-box {
+      background: white; border-radius: 16px; padding: 24px;
+      width: 85vw; max-width: 340px; text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .confirm-box .icon { font-size: 40px; margin-bottom: 10px; }
+    .confirm-box .msg { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .confirm-box .sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+    .confirm-btns { display: flex; gap: 10px; }
+    .confirm-btns button {
+      flex: 1; padding: 12px; border-radius: 12px;
+      font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+    }
+    .btn-confirm-no { background: #f1f5f9; color: var(--text-secondary); }
+    .btn-confirm-yes { background: var(--danger); color: white; }
+
+    /* Form */
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 15px; font-family: inherit;
+      background: #fafafa; outline: none; resize: none;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: var(--teal); background: white;
+    }
+    .form-group textarea { min-height: 70px; }
+    .form-group small { display: block; margin-top: 4px; font-size: 12px; color: var(--text-secondary); }
+
+    .step-editor-row {
+      background: #fafcfb; border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px; margin-bottom: 10px;
+    }
+    .step-editor-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .step-editor-header .step-num { width: 24px; height: 24px; min-width: 24px; font-size: 12px; }
+    .step-editor-header input {
+      flex: 1; border: none; background: transparent; font-size: 15px;
+      font-weight: 600; outline: none; padding: 4px 0;
+    }
+    .step-editor-detail textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 10px; font-size: 14px; font-family: inherit;
+      resize: none; min-height: 50px; background: white; outline: none;
+    }
+    .step-editor-detail textarea:focus { border-color: var(--yellow); }
+    .step-del-btn {
+      background: #fee2e2; color: var(--danger); border: none;
+      width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+      font-size: 14px; flex-shrink: 0;
+    }
+
+    .add-step-btn {
+      background: none; border: 1.5px dashed var(--border);
+      color: var(--text-secondary); width: 100%; padding: 10px;
+      border-radius: 10px; cursor: pointer; font-size: 14px;
+    }
+    .add-step-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+    .btn-primary {
+      width: 100%; background: var(--teal); color: white; border: none;
+      padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
+    }
+    .btn-secondary {
+      width: 100%; background: white; color: var(--text);
+      border: 1.5px solid var(--border); padding: 14px;
+      border-radius: 14px; font-size: 16px; cursor: pointer; margin-top: 8px;
+    }
+
+    /* Import/Export */
+    .data-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .data-actions button {
+      flex: 1; padding: 10px; border-radius: 10px; font-size: 13px;
+      cursor: pointer; border: 1.5px solid var(--border); background: white; color: var(--text);
+    }
+    .data-actions button:active { background: var(--bg); }
+    #import-file { display: none; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1c1917; color: white; padding: 12px 24px; border-radius: 24px;
+      font-size: 14px; opacity: 0; transition: opacity 0.3s, transform 0.3s;
+      z-index: 500; pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .summary-hint {
+      font-size: 13px; color: var(--text-secondary); padding: 8px 0;
+      display: flex; align-items: center; gap: 4px;
+    }
   </style>
 </head>
 <body>
@@ -494,12 +405,10 @@
   </div>
 
   <div class="category-tabs" id="categoryTabs"></div>
-
   <div id="recipeList" class="recipe-list"></div>
-
   <div id="emptyState" class="empty-state" style="display:none">
     <div class="emoji">🍳</div>
-    <p>还没有菜谱<br>记录你做的第一道菜吧</p>
+    <p>还没有菜谱<br>记录你的第一道菜吧</p>
     <button onclick="showAddModal()">+ 添加菜谱</button>
   </div>
 
@@ -508,55 +417,61 @@
 
 <!-- Detail View -->
 <div class="detail-view" id="detailView">
-  <div style="padding: 12px 16px 0;">
-    <div class="back-header">
-      <button class="back-btn" onclick="showList()">←</button>
-      <span style="font-size:14px;color:var(--text-secondary);">返回</span>
+  <div class="back-header">
+    <button class="back-btn" onclick="showList()"><span>← 返回</span></button>
+  </div>
+  <div class="detail-title-row">
+    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-actions">
+      <button class="btn-edit" onclick="editCurrentRecipe()">✏️ 编辑</button>
+      <button class="btn-delete" onclick="confirmDelete()">删除</button>
     </div>
   </div>
-  <div style="padding: 8px 16px 0;">
-    <div class="detail-header">
-      <div class="detail-title" id="detailTitle"></div>
-      <div class="detail-actions">
-        <button class="btn-danger" onclick="deleteRecipe()">删除</button>
+
+  <div style="padding:12px 16px 0">
+    <!-- Source -->
+    <div class="detail-section" id="sourceSection" style="display:none">
+      <div class="source-collapsed" id="sourceCollapsed" onclick="toggleSource()">
+        <span>📎</span><span>来源</span><span class="arrow">▸</span>
+      </div>
+      <div class="source-expanded" id="sourceExpanded">
+        <div class="source-link" id="detailSource"></div>
+        <button class="btn-copy" onclick="copySource()">📋 复制</button>
       </div>
     </div>
-  </div>
 
-  <div style="padding: 0 16px;">
-    <div class="detail-section" id="sourceSection" style="display:none">
-      <div class="detail-section-title">📎 来源</div>
-      <div class="detail-source" id="detailSource"></div>
-    </div>
-
+    <!-- Steps -->
     <div class="detail-section" id="stepsSection">
       <div class="detail-section-title">📝 步骤</div>
       <div id="detailSteps"></div>
     </div>
 
-    <div class="detail-section" id="pitsSection">
-      <div class="detail-section-title">⚠️ 踩过的坑</div>
+    <!-- Pits -->
+    <div class="detail-section" id="pitsSection" style="display:none">
+      <div class="detail-section-title">💡 掌勺心得</div>
       <div id="detailPits"></div>
     </div>
 
+    <!-- Reflections -->
     <div class="detail-section" id="reflectionSection">
-      <div class="detail-section-title">💡 做后的反思</div>
+      <div class="detail-section-title">📖 食味笔记</div>
       <div id="detailReflections"></div>
+
       <div class="add-reflection">
         <div class="toggle-section" onclick="toggleReflectionForm(this)">
-          <h3>添加这次做的情况</h3>
-          <span class="toggle-arrow">▼</span>
+          <span>记一笔</span>
+          <span class="toggle-arrow">▾</span>
         </div>
         <div class="toggle-content">
           <div class="form-group" style="margin-top:10px">
             <label>这次做得怎么样？</label>
-            <textarea id="newReflection" placeholder="这次糖色炒得不错，但火稍微大了一点点…" rows="2"></textarea>
+            <textarea id="newReflection" placeholder="这次火候刚好、味道比上次浓…" rows="2"></textarea>
           </div>
           <div class="form-group">
-            <label>这次踩的坑（可不填）</label>
-            <textarea id="newPit" placeholder="冰糖下锅时机太早…" rows="2"></textarea>
+            <label>新发现的窍门（可选）</label>
+            <textarea id="newPit" placeholder="冰糖下锅太早会苦…" rows="2"></textarea>
           </div>
-          <button class="btn-primary" onclick="addReflection()" style="margin-top:8px">保存记录</button>
+          <button class="btn-primary" onclick="addReflection()" style="margin-top:8px">保存</button>
         </div>
       </div>
     </div>
@@ -571,17 +486,17 @@
       <button class="modal-close" onclick="closeAddModal()">×</button>
     </div>
     <div class="form-group">
-      <label>菜名 *</label>
+      <label>菜名</label>
       <input type="text" id="recipeName" placeholder="比如：红烧肉">
     </div>
     <div class="form-group">
       <label>分类</label>
       <select id="recipeCategory">
         <option value="">不分类</option>
-        <option value="肉类">🥩 肉类</option>
-        <option value="蔬菜">🥬 蔬菜</option>
+        <option value="荤菜">🥩 荤菜</option>
+        <option value="素菜">🥬 素菜</option>
         <option value="主食">🍚 主食</option>
-        <option value="汤类">🍲 汤类</option>
+        <option value="汤羹">🍲 汤羹</option>
         <option value="小吃">🍡 小吃</option>
         <option value="饮品">🧋 饮品</option>
         <option value="其他">📌 其他</option>
@@ -589,7 +504,7 @@
     </div>
     <div class="form-group">
       <label>来源链接</label>
-      <input type="text" id="recipeSource" placeholder="小红书链接或其他教程地址">
+      <input type="text" id="recipeSource" placeholder="小红书链接或教程地址">
     </div>
     <div class="form-group">
       <label>步骤</label>
@@ -597,9 +512,9 @@
       <button class="add-step-btn" onclick="addStepField()">+ 添加步骤</button>
     </div>
     <div class="form-group">
-      <label>注意的坑（可选）</label>
-      <textarea id="recipePits" placeholder="每行一个坑，比如：糖色一定小火，不要炒糊"></textarea>
-      <small>每行一个注意点</small>
+      <label>掌勺心得（可选）</label>
+      <textarea id="recipePits" placeholder="每行一条心得或窍门"></textarea>
+      <small>每行一条，比如「糖色一定小火，不要炒糊」</small>
     </div>
     <button class="btn-primary" id="saveBtn" onclick="saveRecipe()">保存菜谱</button>
     <button class="btn-secondary" onclick="closeAddModal()">取消</button>
@@ -621,10 +536,23 @@
       <button onclick="document.getElementById('import-file').click()">📥 导入数据</button>
       <input type="file" id="import-file" accept=".json" onchange="importData(event)">
     </div>
-    <div style="margin-top:20px;padding:14px;background:#fff7ed;border-radius:12px;border:1px solid var(--orange-light);">
+    <div style="margin-top:20px;padding:14px;background:var(--sky-light);border-radius:12px;">
       <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;">
-        💡 <strong>提示：</strong>导出后妥善保存 json 文件，换手机时导入即可恢复所有菜谱。
+        💡 数据存在手机本地，换手机时导出 json → 新手机导入即可。
       </p>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="icon">⚠️</div>
+    <div class="msg">确定要删除这道菜谱吗？</div>
+    <div class="sub" id="confirmSub"></div>
+    <div class="confirm-btns">
+      <button class="btn-confirm-no" onclick="cancelDelete()">再想想</button>
+      <button class="btn-confirm-yes" onclick="doDelete()">确认删除</button>
     </div>
   </div>
 </div>
@@ -638,41 +566,38 @@ let recipes = [];
 let currentId = null;
 let editingId = null;
 let currentCategory = '';
+let pendingDeleteId = null;
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 function init() {
   loadFromStorage();
   renderList();
   renderCategoryTabs();
-  setupPWA();
 }
 
 function loadFromStorage() {
   const raw = localStorage.getItem('cookbook_recipes');
   if (raw) {
-    try { recipes = JSON.parse(raw); } catch { recipes = []; }
+    try {
+      recipes = JSON.parse(raw);
+      // Migrate old flat step strings to new {main, detail} format
+      recipes.forEach(r => {
+        if (r.steps && r.steps.length > 0 && typeof r.steps[0] === 'string') {
+          r.steps = r.steps.map(s => ({ main: s, detail: '' }));
+        }
+      });
+    } catch { recipes = []; }
   }
 }
 
 function saveToStorage() {
   localStorage.setItem('cookbook_recipes', JSON.stringify(recipes));
-  const ts = document.getElementById('dataDate');
-  if (ts) document.getElementById('dataDate').textContent = new Date().toLocaleDateString('zh-CN');
-  const tc = document.getElementById('dataCount');
-  if (tc) document.getElementById('dataCount').textContent = recipes.length;
-}
-
-// ─── PWA ──────────────────────────────────────────────────────────────────────
-function setupPWA() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
 }
 
 // ─── List View ────────────────────────────────────────────────────────────────
 function renderList() {
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  let filtered = recipes;
+  const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+  let filtered = [...recipes];
 
   if (q) {
     filtered = filtered.filter(r =>
@@ -688,33 +613,38 @@ function renderList() {
 
   const list = document.getElementById('recipeList');
   const empty = document.getElementById('emptyState');
+  const tabs = document.getElementById('categoryTabs');
 
-  if (filtered.length === 0) {
+  if (filtered.length === 0 && !q && !currentCategory) {
     list.innerHTML = '';
     empty.style.display = 'block';
-    document.getElementById('categoryTabs').style.display = 'none';
+    tabs.style.display = 'none';
     return;
   }
 
   empty.style.display = 'none';
-  document.getElementById('categoryTabs').style.display = 'flex';
+  tabs.style.display = 'flex';
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">没有找到匹配的菜谱</div>';
+    return;
+  }
 
   list.innerHTML = filtered.map(r => {
-    const lastReflection = (r.reflections && r.reflections.length > 0)
-      ? r.reflections[r.reflections.length - 1].text.substring(0, 30)
+    const lastRef = (r.reflections && r.reflections.length > 0)
+      ? r.reflections[r.reflections.length - 1].text.substring(0, 28)
       : '';
-    const pitCount = r.pits && r.pits.length > 0 ? r.pits.length : 0;
-    const stepCount = r.steps && r.steps.length > 0 ? r.steps.length : 0;
-    const meta = [stepCount ? `📝 ${stepCount}步` : '', pitCount ? `⚠️ ${pitCount}坑` : ''].filter(Boolean).join(' · ');
+    const pitCount = r.pits ? r.pits.length : 0;
+    const stepCount = r.steps ? r.steps.length : 0;
+    const meta = [stepCount ? `📝 ${stepCount} 步` : '', pitCount ? `💡 ${pitCount} 条心得` : ''].filter(Boolean).join(' · ');
 
     return `
       <div class="recipe-card" onclick="showDetail('${r.id}')">
-        <div class="recipe-card-title">${escapeHtml(r.name)}</div>
-        <div class="recipe-card-meta">${meta || '暂无步骤'}${lastReflection ? ' · ' + escapeHtml(lastReflection) + '…' : ''}</div>
+        <div class="recipe-card-title">${esc(r.name)}</div>
+        <div class="recipe-card-meta">${meta || '暂无步骤'}${lastRef ? ' · ' + esc(lastRef) + '…' : ''}</div>
         <div class="recipe-card-tags">
-          ${r.category ? `<span class="tag">${escapeHtml(r.category)}</span>` : ''}
-          ${pitCount > 0 ? `<span class="tag">⚠️ ${pitCount}个坑</span>` : ''}
-          ${!stepCount ? '<span class="tag empty">待补充步骤</span>' : ''}
+          ${r.category ? `<span class="tag">${esc(r.category)}</span>` : ''}
+          ${pitCount > 0 ? `<span class="tag">💡 ${pitCount}</span>` : ''}
         </div>
       </div>
     `;
@@ -726,7 +656,7 @@ function renderCategoryTabs() {
   const container = document.getElementById('categoryTabs');
   container.innerHTML = `
     <button class="tab-btn ${!currentCategory ? 'active' : ''}" onclick="setCategory('')">全部</button>
-    ${cats.map(c => `<button class="tab-btn ${currentCategory === c ? 'active' : ''}" onclick="setCategory('${escapeHtml(c)}')">${escapeHtml(c)}</button>`).join('')}
+    ${cats.map(c => `<button class="tab-btn ${currentCategory === c ? 'active' : ''}" onclick="setCategory('${esc(c)}')">${esc(c)}</button>`).join('')}
   `;
 }
 
@@ -746,18 +676,19 @@ function showDetail(id) {
   document.getElementById('detailView').classList.add('active');
   document.getElementById('detailTitle').textContent = r.name;
 
-  // Source
-  const sourceSection = document.getElementById('sourceSection');
+  // Source (collapsed by default)
+  const srcSection = document.getElementById('sourceSection');
+  const srcExpanded = document.getElementById('sourceExpanded');
+  const srcContent = document.getElementById('detailSource');
   if (r.source && r.source.trim()) {
-    sourceSection.style.display = 'block';
-    const sourceEl = document.getElementById('detailSource');
-    if (r.source.match(/^https?:\/\//)) {
-      sourceEl.innerHTML = `<a href="${escapeHtml(r.source)}" target="_blank" rel="noopener">${escapeHtml(r.source)}</a>`;
-    } else {
-      sourceEl.textContent = r.source;
-    }
+    srcSection.style.display = 'block';
+    srcExpanded.classList.remove('show');
+    const isUrl = r.source.match(/^https?:\/\//);
+    srcContent.innerHTML = isUrl
+      ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`
+      : esc(r.source);
   } else {
-    sourceSection.style.display = 'none';
+    srcSection.style.display = 'none';
   }
 
   // Steps
@@ -765,41 +696,50 @@ function showDetail(id) {
   const stepsEl = document.getElementById('detailSteps');
   if (r.steps && r.steps.length > 0) {
     stepsSection.style.display = 'block';
-    stepsEl.innerHTML = r.steps.map((s, i) => `
-      <div class="step-item">
-        <div class="step-item-num">${i + 1}</div>
-        <div class="step-item-text">${escapeHtml(s)}</div>
-      </div>
-    `).join('');
+    stepsEl.innerHTML = r.steps.map((s, i) => {
+      const main = typeof s === 'string' ? s : (s.main || '');
+      const detail = typeof s === 'string' ? '' : (s.detail || '');
+      return `
+        <div class="step-card ${detail ? '' : 'no-detail'}" onclick="toggleStep(this)">
+          <div class="step-card-header">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-main">${esc(main)}</div>
+            ${detail ? '<div class="step-indicator">▼ 展开</div>' : ''}
+          </div>
+          ${detail ? `<div class="step-detail">${esc(detail)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
   } else {
     stepsSection.style.display = 'block';
-    stepsEl.innerHTML = '<div style="color:var(--text-secondary);font-size:14px;">还没有步骤，快去添加吧</div>';
+    stepsEl.innerHTML = '<div class="no-data">还没有步骤</div>';
   }
 
   // Pits
+  const pitsSection = document.getElementById('pitsSection');
   const pitsEl = document.getElementById('detailPits');
   if (r.pits && r.pits.length > 0) {
-    pitsEl.innerHTML = r.pits.map(p => `<div class="pits-item">${escapeHtml(p)}</div>`).join('');
+    pitsSection.style.display = 'block';
+    pitsEl.innerHTML = r.pits.map(p => `<div class="pit-item">${esc(p)}</div>`).join('');
   } else {
-    pitsEl.innerHTML = '<div class="no-pits">还没有记录踩坑</div>';
+    pitsSection.style.display = 'none';
   }
 
   // Reflections
-  const reflectionsEl = document.getElementById('detailReflections');
+  const refsEl = document.getElementById('detailReflections');
   if (r.reflections && r.reflections.length > 0) {
-    reflectionsEl.innerHTML = [...r.reflections].reverse().map(ref => `
-      <div class="reflection-item">
-        <div class="reflection-date">${new Date(ref.date).toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'})}</div>
-        ${escapeHtml(ref.text)}
+    refsEl.innerHTML = [...r.reflections].reverse().map(ref => `
+      <div class="ref-item">
+        <div class="ref-date">${new Date(ref.date).toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'})}</div>
+        ${esc(ref.text)}
       </div>
     `).join('');
   } else {
-    reflectionsEl.innerHTML = '<div class="no-reflections">还没有反思记录</div>';
+    refsEl.innerHTML = '<div class="no-data">还没有食味笔记</div>';
   }
 
   document.getElementById('newReflection').value = '';
   document.getElementById('newPit').value = '';
-
   window.scrollTo(0, 0);
 }
 
@@ -809,19 +749,45 @@ function showList() {
   currentId = null;
 }
 
+function toggleSource() {
+  const expanded = document.getElementById('sourceExpanded');
+  const arrow = document.querySelector('#sourceCollapsed .arrow');
+  const isOpen = expanded.classList.contains('show');
+  if (isOpen) {
+    expanded.classList.remove('show');
+    arrow.textContent = '▸';
+  } else {
+    expanded.classList.add('show');
+    arrow.textContent = '▾';
+  }
+}
+
+function copySource() {
+  const srcEl = document.getElementById('detailSource');
+  const text = srcEl.textContent.trim();
+  if (text) {
+    navigator.clipboard.writeText(text).then(() => toast('已复制 ✓')).catch(() => toast('复制失败'));
+  }
+}
+
+function toggleStep(card) {
+  const wasExpanded = card.classList.contains('expanded');
+  card.classList.toggle('expanded');
+  const indicator = card.querySelector('.step-indicator');
+  if (indicator) {
+    indicator.textContent = wasExpanded ? '▼ 展开' : '▲ 收起';
+  }
+}
+
 function toggleReflectionForm(el) {
   el.classList.toggle('open');
-  el.nextElementSibling.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('show');
 }
 
 function addReflection() {
   const text = document.getElementById('newReflection').value.trim();
   const pit = document.getElementById('newPit').value.trim();
-
-  if (!text && !pit) {
-    toast('至少填写一项');
-    return;
-  }
+  if (!text && !pit) { toast('至少填写一项'); return; }
 
   const r = recipes.find(x => x.id === currentId);
   if (!r) return;
@@ -835,25 +801,42 @@ function addReflection() {
     const pits = pit.split('\n').filter(Boolean);
     r.pits = [...new Set([...r.pits, ...pits])];
   }
-
   r.updatedAt = new Date().toISOString();
   saveToStorage();
   showDetail(currentId);
-  toast('记录已保存 ✓');
+  toast('已保存 ✓');
 }
 
-function deleteRecipe() {
-  if (!confirm(`确定删除「${recipes.find(x => x.id === currentId)?.name}」吗？`)) return;
-  recipes = recipes.filter(x => x.id !== currentId);
+// ─── Delete ──────────────────────────────────────────────────────────────────
+function confirmDelete() {
+  const r = recipes.find(x => x.id === currentId);
+  if (!r) return;
+  pendingDeleteId = currentId;
+  document.getElementById('confirmSub').textContent = `「${r.name}」的所有数据将被永久删除`;
+  document.getElementById('confirmOverlay').classList.add('active');
+}
+
+function cancelDelete() {
+  document.getElementById('confirmOverlay').classList.remove('active');
+  pendingDeleteId = null;
+}
+
+function doDelete() {
+  if (!pendingDeleteId) return;
+  recipes = recipes.filter(x => x.id !== pendingDeleteId);
   saveToStorage();
+  document.getElementById('confirmOverlay').classList.remove('active');
+  pendingDeleteId = null;
   showList();
   renderCategoryTabs();
   toast('已删除');
 }
 
-// ─── Add / Edit ──────────────────────────────────────────────────────────────
-let stepFields = [];
+function editCurrentRecipe() {
+  showAddModal(currentId);
+}
 
+// ─── Add / Edit ──────────────────────────────────────────────────────────────
 function showAddModal(editId) {
   editingId = editId || null;
   document.getElementById('addModal').classList.add('active');
@@ -867,14 +850,15 @@ function showAddModal(editId) {
       document.getElementById('recipeCategory').value = r.category || '';
       document.getElementById('recipeSource').value = r.source || '';
       document.getElementById('recipePits').value = (r.pits || []).join('\n');
-      renderStepFields(r.steps || []);
+      renderStepEditor(r.steps || []);
     }
   } else {
     document.getElementById('recipeName').value = '';
     document.getElementById('recipeCategory').value = '';
     document.getElementById('recipeSource').value = '';
     document.getElementById('recipePits').value = '';
-    renderStepFields([]);
+    renderStepEditor([]);
+    addStepField();
   }
 }
 
@@ -895,52 +879,67 @@ function closeDataModal() {
   document.getElementById('dataModal').classList.remove('active');
 }
 
-function renderStepFields(steps) {
+// Step editor
+function renderStepEditor(steps) {
   const container = document.getElementById('stepsEditor');
-  stepFields = steps.map(s => s);
-  container.innerHTML = steps.map((s, i) => stepFieldHtml(i, s)).join('');
-  if (steps.length === 0) addStepField();
+  const normalized = steps.map(s => typeof s === 'string' ? { main: s, detail: '' } : { main: s.main || '', detail: s.detail || '' });
+  container.innerHTML = normalized.map((s, i) => stepEditorHtml(i, s.main, s.detail)).join('');
 }
 
-function stepFieldHtml(index, value) {
+function stepEditorHtml(i, main, detail) {
   return `
-    <div class="step-row" id="step-row-${index}">
-      <div class="step-num">${index + 1}</div>
-      <textarea rows="2" data-step="${index}" placeholder="这一步做了什么…">${escapeHtml(value)}</textarea>
-      <button class="step-del" onclick="removeStep(${index})">×</button>
+    <div class="step-editor-row" id="step-row-${i}">
+      <div class="step-editor-header">
+        <div class="step-num">${i + 1}</div>
+        <input type="text" value="${esc(main)}" placeholder="主要步骤" oninput="updateStepField(this)" data-field="main" data-idx="${i}">
+        <button class="step-del-btn" onclick="removeStep(${i})">×</button>
+      </div>
+      <div class="step-editor-detail">
+        <textarea placeholder="小字说明 / 注意事项…" oninput="updateStepField(this)" data-field="detail" data-idx="${i}">${esc(detail)}</textarea>
+      </div>
     </div>
   `;
 }
 
 function addStepField() {
-  stepFields.push('');
   const container = document.getElementById('stepsEditor');
-  const i = stepFields.length - 1;
-  container.insertAdjacentHTML('beforeend', stepFieldHtml(i, ''));
-  container.lastElementChild.querySelector('textarea').focus();
+  const idx = container.querySelectorAll('.step-editor-row').length;
+  container.insertAdjacentHTML('beforeend', stepEditorHtml(idx, '', ''));
+  container.lastElementChild.querySelector('input').focus();
 }
 
-function removeStep(index) {
-  stepFields.splice(index, 1);
-  const container = document.getElementById('stepsEditor');
-  const rows = container.querySelectorAll('.step-row');
-  container.innerHTML = '';
-  stepFields.forEach((s, i) => {
-    container.insertAdjacentHTML('beforeend', stepFieldHtml(i, s));
+function removeStep(idx) {
+  document.getElementById('step-row-' + idx)?.remove();
+  // Re-number
+  const rows = document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
+  rows.forEach((row, i) => {
+    row.id = 'step-row-' + i;
+    row.querySelector('.step-num').textContent = i + 1;
+    row.querySelectorAll('input, textarea').forEach(el => el.setAttribute('data-idx', i));
   });
-  if (stepFields.length === 0) addStepField();
+}
+
+function updateStepField(el) {
+  // no-op, values are collected on save
+}
+
+function collectStepFields() {
+  const rows = document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
+  const steps = [];
+  rows.forEach(row => {
+    const main = (row.querySelector('input')?.value || '').trim();
+    const detail = (row.querySelector('textarea')?.value || '').trim();
+    if (main) steps.push({ main, detail });
+  });
+  return steps;
 }
 
 function saveRecipe() {
   const name = document.getElementById('recipeName').value.trim();
   if (!name) { toast('请填写菜名'); return; }
 
-  // collect steps from DOM
-  const stepEls = document.querySelectorAll('#stepsEditor textarea');
-  const steps = Array.from(stepEls).map(el => el.value.trim()).filter(Boolean);
-
-  const pits = document.getElementById('recipePits').value
-    .split('\n').map(p => p.trim()).filter(Boolean);
+  const steps = collectStepFields();
+  const pits = document.getElementById('recipePits').value.split('\n').map(p => p.trim()).filter(Boolean);
 
   if (editingId) {
     const r = recipes.find(x => x.id === editingId);
@@ -953,9 +952,8 @@ function saveRecipe() {
       r.updatedAt = new Date().toISOString();
     }
   } else {
-    const id = 'r_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
     recipes.push({
-      id,
+      id: 'r_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       name,
       category: document.getElementById('recipeCategory').value,
       source: document.getElementById('recipeSource').value.trim(),
@@ -995,6 +993,12 @@ function importData(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (!Array.isArray(data)) throw new Error('格式错误');
+      // Migrate old format
+      data.forEach(r => {
+        if (r.steps && r.steps.length > 0 && typeof r.steps[0] === 'string') {
+          r.steps = r.steps.map(s => ({ main: s, detail: '' }));
+        }
+      });
       recipes = data;
       saveToStorage();
       renderList();
@@ -1002,27 +1006,25 @@ function importData(event) {
       closeDataModal();
       toast(`已导入 ${data.length} 条菜谱 ✓`);
     } catch {
-      toast('导入失败：文件格式不对');
+      toast('导入失败：文件格式不正确');
     }
   };
   reader.readAsText(file);
   event.target.value = '';
 }
 
-// ─── Utilities ───────────────────────────────────────────────────────────────
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// ─── Utils ────────────────────────────────────────────────────────────────────
+function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-// ─── Go ──────────────────────────────────────────────────────────────────────
+// ─── Init ─────────────────────────────────────────────────────────────────────
 init();
 </script>
 </body>
