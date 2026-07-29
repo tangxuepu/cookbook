@@ -387,20 +387,39 @@ function addStepField(){
 }
 
 function removeStep(idx){
-  document.getElementById('step-row-'+idx)?.remove();
-  renumberSteps();
+  const vals = readStepEditorValues();
+  vals.splice(idx, 1);
+  renderStepEditorValues(vals);
 }
 
 function moveStep(idx,dir){
-  const c=document.getElementById('stepsEditor'),rows=[...c.querySelectorAll('.step-editor-row')];
-  const target=idx+dir;if(target<0||target>=rows.length)return;
-  const a=rows[idx],b=rows[target];
-  if(dir<0)b.insertAdjacentElement('beforebegin',a);else b.insertAdjacentElement('afterend',a);
-  renumberSteps();
+  const vals = readStepEditorValues();
+  const target = idx + dir;
+  if(target < 0 || target >= vals.length) return;
+  [vals[idx], vals[target]] = [vals[target], vals[idx]];
+  renderStepEditorValues(vals);
+  // Focus moved step's input
+  setTimeout(() => {
+    const inp = document.querySelector(`#stepsEditor .step-editor-row:nth-child(${target + 1}) input`);
+    if(inp) inp.focus();
+  }, 0);
+}
+
+function readStepEditorValues(){
+  const rows = document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
+  return [...rows].map(row => ({
+    main: (row.querySelector('input')?.value || '').trim(),
+    detail: (row.querySelector('textarea')?.value || '').trim()
+  }));
+}
+
+function renderStepEditorValues(vals){
+  document.getElementById('stepsEditor').innerHTML = vals.map((s, i) => stepEditorHtml(i, s.main, s.detail)).join('');
 }
 
 function renumberSteps(){
-  const rows=document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
+  // Kept for backward compat, but no longer needed — renderStepEditorValues handles numbering
+  const rows = document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
   rows.forEach((row,i)=>{row.id='step-row-'+i;row.querySelector('.step-num').textContent=i+1;const dbtn=row.querySelector('.step-reorder');
   if(dbtn){dbtn.querySelectorAll('button')[0].disabled=i===0}})
 }
