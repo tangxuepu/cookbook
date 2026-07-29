@@ -1,425 +1,187 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0E6973">
-  <title>做饭助手</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
-  <style>
-    :root {
-      --teal: #0E6973;
-      --teal-light: #118C8C;
-      --sky: #BAD9CE;
-      --sky-light: #d9f0e8;
-      --yellow: #F2BB16;
-      --gold: #BF820F;
-      --bg: #f5faf8;
-      --card: #ffffff;
-      --text: #1a1a1a;
-      --text-secondary: #5a7a76;
-      --border: #dce8e4;
-      --danger: #e05555;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100dvh;
-      padding-bottom: 80px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0E6973">
+<title>做饭助手</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
+<style>
+:root {
+  --teal:#0E6973; --teal-light:#118C8C; --sky:#BAD9CE; --sky-light:#d9f0e8;
+  --yellow:#F2BB16; --gold:#BF820F; --bg:#f5faf8; --card:#fff;
+  --text:#1a1a1a; --text-secondary:#5a7a76; --border:#dce8e4; --danger:#e05555;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);min-height:100dvh;padding-bottom:80px;
+}
+header{
+  background:var(--teal);color:#fff;padding:16px 20px;display:flex;
+  align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(14,105,115,.25);
+}
+header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
+.header-actions{display:flex;gap:10px}
+.header-btn{background:rgba(255,255,255,.18);border:none;color:#fff;font-size:13px;padding:6px 14px;border-radius:20px;cursor:pointer}
+.header-btn:active{background:rgba(255,255,255,.3)}
 
-    /* Header */
-    header {
-      background: var(--teal);
-      color: white;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 12px rgba(14,105,115,0.25);
-    }
-    header h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
-    .header-actions { display: flex; gap: 10px; }
-    .header-btn {
-      background: rgba(255,255,255,0.18);
-      border: none;
-      color: white;
-      font-size: 13px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .header-btn:active { background: rgba(255,255,255,0.3); }
+.search-bar{padding:14px 16px;background:#fff;border-bottom:1px solid var(--border)}
+.search-bar input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;background:var(--bg);outline:none}
+.search-bar input:focus{border-color:var(--teal)}
 
-    /* Search */
-    .search-bar {
-      padding: 14px 16px;
-      background: white;
-      border-bottom: 1px solid var(--border);
-    }
-    .search-bar input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      font-size: 15px;
-      background: var(--bg);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .search-bar input:focus { border-color: var(--teal); }
+.category-tabs{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;background:#fff;border-bottom:1px solid var(--border);scrollbar-width:none}
+.category-tabs::-webkit-scrollbar{display:none}
+.tab-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.tab-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
 
-    /* Category Tabs */
-    .category-tabs {
-      display: flex;
-      gap: 8px;
-      padding: 10px 16px;
-      overflow-x: auto;
-      background: white;
-      border-bottom: 1px solid var(--border);
-      scrollbar-width: none;
-    }
-    .category-tabs::-webkit-scrollbar { display: none; }
-    .tab-btn {
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1.5px solid var(--border);
-      background: white;
-      font-size: 13px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      white-space: nowrap;
-      flex-shrink: 0;
-      transition: all 0.15s;
-    }
-    .tab-btn.active {
-      background: var(--teal);
-      color: white;
-      border-color: var(--teal);
-    }
+.recipe-list{padding:12px 16px;display:flex;flex-direction:column;gap:10px}
+.recipe-card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);cursor:pointer;border:1px solid var(--border)}
+.recipe-card:active{transform:scale(.98)}
+.recipe-card-title{font-size:17px;font-weight:600;margin-bottom:4px}
+.recipe-card-meta{font-size:13px;color:var(--text-secondary)}
+.recipe-card-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.tag{font-size:12px;padding:3px 10px;border-radius:20px;background:var(--sky-light);color:var(--teal)}
 
-    /* Recipe List */
-    .recipe-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
-    .recipe-card {
-      background: var(--card);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-      cursor: pointer;
-      transition: transform 0.1s;
-      border: 1px solid var(--border);
-    }
-    .recipe-card:active { transform: scale(0.98); }
-    .recipe-card-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
-    .recipe-card-meta { font-size: 13px; color: var(--text-secondary); }
-    .recipe-card-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-    .tag {
-      font-size: 12px; padding: 3px 10px; border-radius: 20px;
-      background: var(--sky-light); color: var(--teal);
-    }
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary)}
+.empty-state .emoji{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:15px;margin-bottom:16px;line-height:1.6}
+.empty-state button{background:var(--teal);color:#fff;border:none;padding:12px 28px;border-radius:24px;font-size:15px;cursor:pointer}
 
-    /* Empty State */
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
-    .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 15px; margin-bottom: 16px; line-height: 1.6; }
-    .empty-state button {
-      background: var(--teal); color: white; border: none;
-      padding: 12px 28px; border-radius: 24px; font-size: 15px; cursor: pointer;
-    }
+.fab{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:var(--yellow);color:#fff;border:none;font-size:28px;box-shadow:0 4px 16px rgba(242,187,22,.45);cursor:pointer;z-index:200;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(.92)}
 
-    /* FAB */
-    .fab {
-      position: fixed; bottom: 24px; right: 24px;
-      width: 56px; height: 56px; border-radius: 50%;
-      background: var(--yellow); color: white; border: none; font-size: 28px;
-      box-shadow: 0 4px 16px rgba(242,187,22,0.45); cursor: pointer; z-index: 200;
-      display: flex; align-items: center; justify-content: center;
-      transition: transform 0.15s;
-    }
-    .fab:active { transform: scale(0.92); }
+.back-header{padding:12px 16px 0;display:flex;align-items:center;gap:6px}
+.back-btn{background:none;border:none;color:var(--teal);font-size:16px;cursor:pointer;padding:6px 4px;display:flex;align-items:center;gap:4px}
+.back-btn span{font-size:14px;color:var(--text-secondary)}
 
-    /* Back button */
-    .back-header {
-      padding: 12px 16px 0;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .back-btn {
-      background: none; border: none; color: var(--teal);
-      font-size: 16px; cursor: pointer; padding: 6px 4px;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .back-btn span { font-size: 14px; color: var(--text-secondary); }
+.detail-view{display:none}
+.detail-view.active{display:block}
+.list-view.hidden{display:none}
 
-    /* Detail View */
-    .detail-view { display: none; }
-    .detail-view.active { display: block; }
-    .list-view.hidden { display: none; }
+.detail-title-row{padding:8px 16px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.detail-title{font-size:24px;font-weight:700;color:var(--teal)}
+.detail-actions{display:flex;gap:6px}
+.btn-delete{background:none;border:1.5px solid var(--danger);color:var(--danger);padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer}
+.btn-edit{background:var(--sky-light);border:none;color:var(--teal);padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer}
 
-    .detail-title-row {
-      padding: 8px 16px 0;
-      display: flex; justify-content: space-between; align-items: flex-start;
-    }
-    .detail-title { font-size: 24px; font-weight: 700; color: var(--teal); }
-    .detail-actions { display: flex; gap: 6px; }
-    .btn-delete {
-      background: none; border: 1.5px solid var(--danger); color: var(--danger);
-      padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
-    }
-    .btn-edit {
-      background: var(--sky-light); border: none; color: var(--teal);
-      padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer;
-    }
+.detail-section{background:var(--card);border-radius:14px;padding:16px;margin:0 16px 12px;border:1px solid var(--border)}
+.detail-section-title{font-size:14px;font-weight:700;color:var(--teal-light);margin-bottom:12px;display:flex;align-items:center;gap:6px;letter-spacing:.5px}
 
-    /* Detail Section */
-    .detail-section {
-      background: var(--card); border-radius: 14px; padding: 16px;
-      margin: 0 16px 12px; border: 1px solid var(--border);
-    }
-    .detail-section-title {
-      font-size: 14px; font-weight: 700; color: var(--teal-light);
-      margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
-      letter-spacing: 0.5px;
-    }
+/* Ingredient list */
+.ing-list{list-style:none;padding:0}
+.ing-list li{padding:8px 0;border-bottom:1px dotted var(--border);font-size:15px;line-height:1.5}
+.ing-list li:last-child{border-bottom:none}
 
-    /* Source Collapse */
-    .source-collapsed {
-      display: flex; align-items: center; gap: 8px;
-      cursor: pointer; padding: 4px 0; color: var(--text-secondary); font-size: 14px;
-    }
-    .source-collapsed:hover { color: var(--teal); }
-    .source-collapsed .arrow { font-size: 12px; transition: transform 0.2s; }
-    .source-expanded { display: none; margin-top: 6px; }
-    .source-expanded.show { display: block; }
-    .source-link {
-      word-break: break-all; font-size: 14px; color: var(--teal); line-height: 1.6;
-    }
-    .source-link a { color: var(--teal); }
-    .btn-copy {
-      display: inline-block; margin-top: 6px; padding: 5px 14px;
-      background: var(--sky-light); color: var(--teal); border: none;
-      border-radius: 14px; font-size: 13px; cursor: pointer;
-    }
-    .btn-copy:active { background: var(--sky); }
+.source-collapsed{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0;color:var(--text-secondary);font-size:14px}
+.source-collapsed:hover{color:var(--teal)}
+.source-expanded{display:none;margin-top:6px}
+.source-expanded.show{display:block}
+.source-link{word-break:break-all;font-size:14px;color:var(--teal);line-height:1.6}
+.source-link a{color:var(--teal)}
+.btn-copy{display:inline-block;margin-top:6px;padding:5px 14px;background:var(--sky-light);color:var(--teal);border:none;border-radius:14px;font-size:13px;cursor:pointer}
+.btn-copy:active{background:var(--sky)}
 
-    /* Steps in Detail */
-    .step-card {
-      border: 1px solid var(--border); border-radius: 12px; padding: 14px;
-      margin-bottom: 10px; cursor: pointer; transition: all 0.15s;
-      background: white;
-    }
-    .step-card:last-child { margin-bottom: 0; }
-    .step-card.expanded {
-      border-color: var(--yellow); background: #fffdf5;
-      box-shadow: 0 2px 8px rgba(242,187,22,0.15);
-    }
-    .step-card-header { display: flex; gap: 10px; align-items: flex-start; }
-    .step-num {
-      width: 28px; height: 28px; min-width: 28px; border-radius: 50%;
-      background: var(--sky-light); color: var(--teal);
-      font-size: 13px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .step-main { font-size: 16px; font-weight: 600; line-height: 1.5; flex: 1; }
-    .step-indicator {
-      font-size: 12px; color: var(--text-secondary); margin-top: 2px;
-    }
-    .step-detail {
-      display: none; margin-top: 10px; padding: 10px 12px;
-      background: #fefce8; border-radius: 8px;
-      font-size: 15px; line-height: 1.7; color: #5c5c3a;
-    }
-    .step-card.expanded .step-detail { display: block; }
+.step-card{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .15s;background:#fff}
+.step-card:last-child{margin-bottom:0}
+.step-card.expanded{border-color:var(--yellow);background:#fffdf5;box-shadow:0 2px 8px rgba(242,187,22,.15)}
+.step-card-header{display:flex;gap:10px;align-items:flex-start}
+.step-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:var(--sky-light);color:var(--teal);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.step-main{font-size:16px;font-weight:600;line-height:1.5;flex:1}
+.step-indicator{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.step-detail{display:none;margin-top:10px;padding:10px 12px;background:#fefce8;border-radius:8px;font-size:15px;line-height:1.7;color:#5c5c3a}
+.step-card.expanded .step-detail{display:block}
 
-    /* Pits & Reflections */
-    .pit-item {
-      background: #fef5f5; border-left: 3px solid var(--danger);
-      padding: 10px 14px; border-radius: 0 8px 8px 0;
-      margin-bottom: 6px; font-size: 14px; line-height: 1.6;
-    }
-    .ref-item {
-      background: #f5faf8; border-left: 3px solid var(--teal-light);
-      padding: 10px 14px; border-radius: 0 8px 8px 0;
-      margin-bottom: 6px; line-height: 1.6;
-    }
-    .ref-date { font-size: 12px; color: var(--text-secondary); margin-bottom: 3px; }
-    .no-data { color: var(--text-secondary); font-size: 14px; padding: 4px 0; }
+.pit-item{background:#fef5f5;border-left:3px solid var(--danger);padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:6px;font-size:14px;line-height:1.6}
+.ref-item{background:#f5faf8;border-left:3px solid var(--teal-light);padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:6px;line-height:1.6}
+.ref-date{font-size:12px;color:var(--text-secondary);margin-bottom:3px}
+.no-data{color:var(--text-secondary);font-size:14px;padding:4px 0}
 
-    /* Reflection Form */
-    .add-reflection { margin-top: 12px; }
-    .toggle-section {
-      display: flex; justify-content: space-between; align-items: center;
-      cursor: pointer; padding: 8px 0; color: var(--text-secondary);
-      font-size: 14px; font-weight: 600;
-    }
-    .toggle-arrow { font-size: 14px; transition: transform 0.2s; }
-    .toggle-section.open .toggle-arrow { transform: rotate(180deg); }
-    .toggle-content { display: none; }
-    .toggle-content.show { display: block; }
+.add-reflection{margin-top:12px}
+.toggle-section{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:8px 0;color:var(--text-secondary);font-size:14px;font-weight:600}
+.toggle-arrow{font-size:14px;transition:transform .2s}
+.toggle-section.open .toggle-arrow{transform:rotate(180deg)}
+.toggle-content{display:none}
+.toggle-content.show{display:block}
 
-    /* Modal Overlay */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45); z-index: 300;
-      align-items: flex-end; justify-content: center;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal {
-      background: white; width: 100%; max-width: 600px;
-      border-radius: 20px 20px 0 0; max-height: 90dvh;
-      overflow-y: auto; padding: 24px 20px 32px;
-    }
-    .modal-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px;
-    }
-    .modal-header h2 { font-size: 18px; color: var(--teal); }
-    .modal-close {
-      background: none; border: none; font-size: 26px;
-      color: var(--text-secondary); cursor: pointer; padding: 4px; line-height: 1;
-    }
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:flex-end;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;width:100%;max-width:600px;border-radius:20px 20px 0 0;max-height:90dvh;overflow-y:auto;padding:24px 20px 32px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-header h2{font-size:18px;color:var(--teal)}
+.modal-close{background:none;border:none;font-size:26px;color:var(--text-secondary);cursor:pointer;padding:4px;line-height:1}
 
-    /* Confirm Dialog */
-    .confirm-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5); z-index: 400;
-      align-items: center; justify-content: center;
-    }
-    .confirm-overlay.active { display: flex; }
-    .confirm-box {
-      background: white; border-radius: 16px; padding: 24px;
-      width: 85vw; max-width: 340px; text-align: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    }
-    .confirm-box .icon { font-size: 40px; margin-bottom: 10px; }
-    .confirm-box .msg { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-    .confirm-box .sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
-    .confirm-btns { display: flex; gap: 10px; }
-    .confirm-btns button {
-      flex: 1; padding: 12px; border-radius: 12px;
-      font-size: 15px; font-weight: 600; cursor: pointer; border: none;
-    }
-    .btn-confirm-no { background: #f1f5f9; color: var(--text-secondary); }
-    .btn-confirm-yes { background: var(--danger); color: white; }
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center}
+.confirm-overlay.active{display:flex}
+.confirm-box{background:#fff;border-radius:16px;padding:24px;width:85vw;max-width:340px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.confirm-box .icon{font-size:40px;margin-bottom:10px}
+.confirm-box .msg{font-size:16px;font-weight:600;margin-bottom:6px}
+.confirm-box .sub{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+.confirm-btns{display:flex;gap:10px}
+.confirm-btns button{flex:1;padding:12px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;border:none}
+.btn-confirm-no{background:#f1f5f9;color:var(--text-secondary)}
+.btn-confirm-yes{background:var(--danger);color:#fff}
 
-    /* Form */
-    .form-group { margin-bottom: 18px; }
-    .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-    .form-group input, .form-group textarea, .form-group select {
-      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
-      border-radius: 10px; font-size: 15px; font-family: inherit;
-      background: #fafafa; outline: none; resize: none;
-    }
-    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-      border-color: var(--teal); background: white;
-    }
-    .form-group textarea { min-height: 70px; }
-    .form-group small { display: block; margin-top: 4px; font-size: 12px; color: var(--text-secondary); }
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:#fafafa;outline:none;resize:none}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--teal);background:#fff}
+.form-group textarea{min-height:70px}
+.form-group small{display:block;margin-top:4px;font-size:12px;color:var(--text-secondary)}
 
-    .step-editor-row {
-      background: #fafcfb; border: 1px solid var(--border); border-radius: 12px;
-      padding: 12px; margin-bottom: 10px;
-    }
-    .step-editor-header {
-      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-    }
-    .step-editor-header .step-num { width: 24px; height: 24px; min-width: 24px; font-size: 12px; }
-    .step-editor-header input {
-      flex: 1; border: none; background: transparent; font-size: 15px;
-      font-weight: 600; outline: none; padding: 4px 0;
-    }
-    .step-editor-detail textarea {
-      width: 100%; border: 1px solid var(--border); border-radius: 8px;
-      padding: 8px 10px; font-size: 14px; font-family: inherit;
-      resize: none; min-height: 50px; background: white; outline: none;
-    }
-    .step-editor-detail textarea:focus { border-color: var(--yellow); }
-    .step-del-btn {
-      background: #fee2e2; color: var(--danger); border: none;
-      width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
-      font-size: 14px; flex-shrink: 0;
-    }
+.step-editor-row{background:#fafcfb;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.step-editor-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.step-editor-header .step-num{width:24px;height:24px;min-width:24px;font-size:12px}
+.step-editor-header input{flex:1;border:none;background:transparent;font-size:15px;font-weight:600;outline:none;padding:4px 0}
+.step-editor-detail textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;resize:none;min-height:50px;background:#fff;outline:none}
+.step-editor-detail textarea:focus{border-color:var(--yellow)}
 
-    .add-step-btn {
-      background: none; border: 1.5px dashed var(--border);
-      color: var(--text-secondary); width: 100%; padding: 10px;
-      border-radius: 10px; cursor: pointer; font-size: 14px;
-    }
-    .add-step-btn:hover { border-color: var(--teal); color: var(--teal); }
+/* Step reorder buttons */
+.step-reorder{display:flex;flex-direction:column;gap:2px;margin-left:auto;flex-shrink:0}
+.step-reorder button{background:var(--sky-light);border:none;color:var(--teal);width:26px;height:22px;border-radius:4px;cursor:pointer;font-size:11px;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
+.step-reorder button:active{background:var(--sky)}
+.step-reorder button:disabled{opacity:.3;cursor:default}
 
-    .btn-primary {
-      width: 100%; background: var(--teal); color: white; border: none;
-      padding: 14px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
-    }
-    .btn-secondary {
-      width: 100%; background: white; color: var(--text);
-      border: 1.5px solid var(--border); padding: 14px;
-      border-radius: 14px; font-size: 16px; cursor: pointer; margin-top: 8px;
-    }
+.step-del-btn{background:#fee2e2;color:var(--danger);border:none;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;flex-shrink:0;margin-left:6px}
 
-    /* Import/Export */
-    .data-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-    .data-actions button {
-      flex: 1; padding: 10px; border-radius: 10px; font-size: 13px;
-      cursor: pointer; border: 1.5px solid var(--border); background: white; color: var(--text);
-    }
-    .data-actions button:active { background: var(--bg); }
-    #import-file { display: none; }
+.add-step-btn{background:none;border:1.5px dashed var(--border);color:var(--text-secondary);width:100%;padding:10px;border-radius:10px;cursor:pointer;font-size:14px}
+.add-step-btn:hover{border-color:var(--teal);color:var(--teal)}
 
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: #1c1917; color: white; padding: 12px 24px; border-radius: 24px;
-      font-size: 14px; opacity: 0; transition: opacity 0.3s, transform 0.3s;
-      z-index: 500; pointer-events: none; white-space: nowrap;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.btn-primary{width:100%;background:var(--teal);color:#fff;border:none;padding:14px;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer}
+.btn-secondary{width:100%;background:#fff;color:var(--text);border:1.5px solid var(--border);padding:14px;border-radius:14px;font-size:16px;cursor:pointer;margin-top:8px}
 
-    .summary-hint {
-      font-size: 13px; color: var(--text-secondary); padding: 8px 0;
-      display: flex; align-items: center; gap: 4px;
-    }
-  </style>
+.data-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.data-actions button{flex:1;padding:10px;border-radius:10px;font-size:13px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text)}
+.data-actions button:active{background:var(--bg)}
+#import-file{display:none}
+
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:#1c1917;color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;opacity:0;transition:opacity .3s,transform .3s;z-index:500;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
 </head>
 <body>
 
-<!-- List View -->
 <div class="list-view" id="listView">
   <header>
     <h1>🍳 做饭助手</h1>
-    <div class="header-actions">
-      <button class="header-btn" onclick="showDataModal()">📦 数据</button>
-    </div>
+    <div class="header-actions"><button class="header-btn" onclick="showDataModal()">📦 数据</button></div>
   </header>
-
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="搜索菜名…" oninput="renderList()">
-  </div>
-
+  <div class="search-bar"><input type="text" id="searchInput" placeholder="搜索菜名…" oninput="renderList()"></div>
   <div class="category-tabs" id="categoryTabs"></div>
   <div id="recipeList" class="recipe-list"></div>
   <div id="emptyState" class="empty-state" style="display:none">
-    <div class="emoji">🍳</div>
-    <p>还没有菜谱<br>记录你的第一道菜吧</p>
+    <div class="emoji">🍳</div><p>还没有菜谱<br>记录你的第一道菜吧</p>
     <button onclick="showAddModal()">+ 添加菜谱</button>
   </div>
-
   <button class="fab" onclick="showAddModal()">+</button>
 </div>
 
-<!-- Detail View -->
 <div class="detail-view" id="detailView">
-  <div class="back-header">
-    <button class="back-btn" onclick="showList()"><span>← 返回</span></button>
-  </div>
+  <div class="back-header"><button class="back-btn" onclick="showList()"><span>← 返回</span></button></div>
   <div class="detail-title-row">
     <div class="detail-title" id="detailTitle"></div>
     <div class="detail-actions">
@@ -427,50 +189,44 @@
       <button class="btn-delete" onclick="confirmDelete()">删除</button>
     </div>
   </div>
-
   <div style="padding:12px 16px 0">
+    <!-- Ingredients -->
+    <div class="detail-section" id="ingSection" style="display:none">
+      <div class="detail-section-title">🛒 食材清单</div>
+      <div id="detailIngredients"></div>
+    </div>
+    <!-- Prep -->
+    <div class="detail-section" id="prepSection" style="display:none">
+      <div class="detail-section-title">🔪 准备工作</div>
+      <div id="detailPrep"></div>
+    </div>
     <!-- Source -->
     <div class="detail-section" id="sourceSection" style="display:none">
-      <div class="source-collapsed" id="sourceCollapsed" onclick="toggleSource()">
-        <span>📎</span><span>来源</span><span class="arrow">▸</span>
-      </div>
+      <div class="source-collapsed" id="sourceCollapsed" onclick="toggleSource()"><span>📎</span><span>来源</span><span class="arrow">▸</span></div>
       <div class="source-expanded" id="sourceExpanded">
         <div class="source-link" id="detailSource"></div>
         <button class="btn-copy" onclick="copySource()">📋 复制</button>
       </div>
     </div>
-
     <!-- Steps -->
     <div class="detail-section" id="stepsSection">
       <div class="detail-section-title">📝 步骤</div>
       <div id="detailSteps"></div>
     </div>
-
     <!-- Pits -->
     <div class="detail-section" id="pitsSection" style="display:none">
       <div class="detail-section-title">💡 掌勺心得</div>
       <div id="detailPits"></div>
     </div>
-
     <!-- Reflections -->
     <div class="detail-section" id="reflectionSection">
       <div class="detail-section-title">📖 食味笔记</div>
       <div id="detailReflections"></div>
-
       <div class="add-reflection">
-        <div class="toggle-section" onclick="toggleReflectionForm(this)">
-          <span>记一笔</span>
-          <span class="toggle-arrow">▾</span>
-        </div>
+        <div class="toggle-section" onclick="toggleReflectionForm(this)"><span>记一笔</span><span class="toggle-arrow">▾</span></div>
         <div class="toggle-content">
-          <div class="form-group" style="margin-top:10px">
-            <label>这次做得怎么样？</label>
-            <textarea id="newReflection" placeholder="这次火候刚好、味道比上次浓…" rows="2"></textarea>
-          </div>
-          <div class="form-group">
-            <label>新发现的窍门（可选）</label>
-            <textarea id="newPit" placeholder="冰糖下锅太早会苦…" rows="2"></textarea>
-          </div>
+          <div class="form-group" style="margin-top:10px"><label>这次做得怎么样？</label><textarea id="newReflection" placeholder="这次火候刚好、味道比上次浓…" rows="2"></textarea></div>
+          <div class="form-group"><label>新发现的窍门（可选）</label><textarea id="newPit" placeholder="冰糖下锅太早会苦…" rows="2"></textarea></div>
           <button class="btn-primary" onclick="addReflection()" style="margin-top:8px">保存</button>
         </div>
       </div>
@@ -481,550 +237,199 @@
 <!-- Add/Edit Modal -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
-    <div class="modal-header">
-      <h2 id="modalTitle">添加菜谱</h2>
-      <button class="modal-close" onclick="closeAddModal()">×</button>
-    </div>
-    <div class="form-group">
-      <label>菜名</label>
-      <input type="text" id="recipeName" placeholder="比如：红烧肉">
-    </div>
-    <div class="form-group">
-      <label>分类</label>
-      <select id="recipeCategory">
-        <option value="">不分类</option>
-        <option value="荤菜">🥩 荤菜</option>
-        <option value="素菜">🥬 素菜</option>
-        <option value="主食">🍚 主食</option>
-        <option value="汤羹">🍲 汤羹</option>
-        <option value="小吃">🍡 小吃</option>
-        <option value="饮品">🧋 饮品</option>
-        <option value="其他">📌 其他</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>来源链接</label>
-      <input type="text" id="recipeSource" placeholder="小红书链接或教程地址">
-    </div>
-    <div class="form-group">
-      <label>步骤</label>
-      <div id="stepsEditor"></div>
-      <button class="add-step-btn" onclick="addStepField()">+ 添加步骤</button>
-    </div>
-    <div class="form-group">
-      <label>掌勺心得（可选）</label>
-      <textarea id="recipePits" placeholder="每行一条心得或窍门"></textarea>
-      <small>每行一条，比如「糖色一定小火，不要炒糊」</small>
-    </div>
+    <div class="modal-header"><h2 id="modalTitle">添加菜谱</h2><button class="modal-close" onclick="closeAddModal()">×</button></div>
+    <div class="form-group"><label>菜名</label><input type="text" id="recipeName" placeholder="比如：红烧肉"></div>
+    <div class="form-group"><label>分类</label><select id="recipeCategory"><option value="">不分类</option><option value="荤菜">🥩 荤菜</option><option value="素菜">🥬 素菜</option><option value="主食">🍚 主食</option><option value="汤羹">🍲 汤羹</option><option value="小吃">🍡 小吃</option><option value="饮品">🧋 饮品</option><option value="其他">📌 其他</option></select></div>
+    <div class="form-group"><label>来源链接</label><input type="text" id="recipeSource" placeholder="小红书链接或教程地址"></div>
+    <div class="form-group"><label>🛒 食材清单</label><textarea id="recipeIngredients" placeholder="每行一种食材，比如：&#10;五花肉 500g&#10;冰糖 30g&#10;生抽 2勺&#10;老抽 1勺" rows="4"></textarea><small>每行一种食材，格式：食材名 + 用量</small></div>
+    <div class="form-group"><label>🔪 准备工作</label><textarea id="recipePrep" placeholder="每行一条准备，比如：&#10;五花肉切 2cm 方块&#10;葱切段、姜切片&#10;调好酱汁备用" rows="3"></textarea><small>提前需要做的准备事项，每行一条</small></div>
+    <div class="form-group"><label>📝 步骤</label><div id="stepsEditor"></div><button class="add-step-btn" onclick="addStepField()">+ 添加步骤</button></div>
+    <div class="form-group"><label>💡 掌勺心得（可选）</label><textarea id="recipePits" placeholder="每行一条心得或窍门"></textarea><small>每行一条</small></div>
     <button class="btn-primary" id="saveBtn" onclick="saveRecipe()">保存菜谱</button>
     <button class="btn-secondary" onclick="closeAddModal()">取消</button>
   </div>
 </div>
 
-<!-- Data Modal -->
 <div class="modal-overlay" id="dataModal">
   <div class="modal">
-    <div class="modal-header">
-      <h2>📦 数据管理</h2>
-      <button class="modal-close" onclick="closeDataModal()">×</button>
-    </div>
-    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">
-      共 <strong id="dataCount">0</strong> 条菜谱，最后更新 <strong id="dataDate">—</strong>
-    </p>
-    <div class="data-actions">
-      <button onclick="exportData()">📤 导出数据</button>
-      <button onclick="document.getElementById('import-file').click()">📥 导入数据</button>
-      <input type="file" id="import-file" accept=".json" onchange="importData(event)">
-    </div>
-    <div style="margin-top:20px;padding:14px;background:var(--sky-light);border-radius:12px;">
-      <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;">
-        💡 数据存在手机本地，换手机时导出 json → 新手机导入即可。
-      </p>
-    </div>
+    <div class="modal-header"><h2>📦 数据管理</h2><button class="modal-close" onclick="closeDataModal()">×</button></div>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">共 <strong id="dataCount">0</strong> 条菜谱，最后更新 <strong id="dataDate">—</strong></p>
+    <div class="data-actions"><button onclick="exportData()">📤 导出数据</button><button onclick="document.getElementById('import-file').click()">📥 导入数据</button><input type="file" id="import-file" accept=".json" onchange="importData(event)"></div>
+    <div style="margin-top:20px;padding:14px;background:var(--sky-light);border-radius:12px"><p style="font-size:13px;color:var(--text-secondary);line-height:1.6">💡 数据存在手机本地，换手机时导出 json → 新手机导入即可。</p></div>
   </div>
 </div>
 
-<!-- Confirm Delete Dialog -->
 <div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <div class="icon">⚠️</div>
-    <div class="msg">确定要删除这道菜谱吗？</div>
-    <div class="sub" id="confirmSub"></div>
-    <div class="confirm-btns">
-      <button class="btn-confirm-no" onclick="cancelDelete()">再想想</button>
-      <button class="btn-confirm-yes" onclick="doDelete()">确认删除</button>
-    </div>
+  <div class="confirm-box"><div class="icon">⚠️</div><div class="msg">确定要删除这道菜谱吗？</div><div class="sub" id="confirmSub"></div>
+    <div class="confirm-btns"><button class="btn-confirm-no" onclick="cancelDelete()">再想想</button><button class="btn-confirm-yes" onclick="doDelete()">确认删除</button></div>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let recipes = [];
-let currentId = null;
-let editingId = null;
-let currentCategory = '';
-let pendingDeleteId = null;
+let recipes=[],currentId=null,editingId=null,currentCategory='',pendingDeleteId=null;
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-function init() {
-  loadFromStorage();
-  renderList();
-  renderCategoryTabs();
+function init(){loadFromStorage();renderList();renderCategoryTabs()}
+
+function loadFromStorage(){
+  const raw=localStorage.getItem('cookbook_recipes');
+  if(raw){try{recipes=JSON.parse(raw);recipes.forEach(fixRecipe)}catch{recipes=[]}}
+}
+function fixRecipe(r){
+  if(r.steps&&r.steps.length&&typeof r.steps[0]==='string') r.steps=r.steps.map(s=>({main:s,detail:''}));
+  if(!r.ingredients)r.ingredients=[];
+  if(!r.prep)r.prep=[];
+}
+function saveToStorage(){localStorage.setItem('cookbook_recipes',JSON.stringify(recipes))}
+
+// ─── List ────────────────────────────────────────────────────────────────────
+function renderList(){
+  const q=(document.getElementById('searchInput')?.value||'').trim().toLowerCase();
+  let f=[...recipes];
+  if(q)f=f.filter(r=>r.name.toLowerCase().includes(q)||(r.category&&r.category.toLowerCase().includes(q)));
+  if(currentCategory)f=f.filter(r=>r.category===currentCategory);
+  f.sort((a,b)=>new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt));
+  const L=document.getElementById('recipeList'),E=document.getElementById('emptyState'),T=document.getElementById('categoryTabs');
+  if(!f.length&&!q&&!currentCategory){L.innerHTML='';E.style.display='block';T.style.display='none';return}
+  E.style.display='none';T.style.display='flex';
+  L.innerHTML=f.length?f.map(r=>{
+    const lr=(r.reflections&&r.reflections.length)?r.reflections[r.reflections.length-1].text.substring(0,28):'';
+    const pc=r.pits?r.pits.length:0,sc=r.steps?r.steps.length:0;
+    const m=[sc?`📝 ${sc}步`:'',pc?`💡 ${pc}条心得`:'',(r.ingredients||[]).length?`🛒 ${r.ingredients.length}种食材`:''].filter(Boolean).join(' · ');
+    return `<div class="recipe-card" onclick="showDetail('${r.id}')"><div class="recipe-card-title">${esc(r.name)}</div><div class="recipe-card-meta">${m||'暂无步骤'}${lr?' · '+esc(lr)+'…':''}</div><div class="recipe-card-tags">${r.category?`<span class="tag">${esc(r.category)}</span>`:''}${pc?`<span class="tag">💡 ${pc}</span>`:''}</div></div>`
+  }).join(''):'<div style="text-align:center;padding:40px;color:var(--text-secondary)">没有找到匹配的菜谱</div>';
 }
 
-function loadFromStorage() {
-  const raw = localStorage.getItem('cookbook_recipes');
-  if (raw) {
-    try {
-      recipes = JSON.parse(raw);
-      // Migrate old flat step strings to new {main, detail} format
-      recipes.forEach(r => {
-        if (r.steps && r.steps.length > 0 && typeof r.steps[0] === 'string') {
-          r.steps = r.steps.map(s => ({ main: s, detail: '' }));
-        }
-      });
-    } catch { recipes = []; }
-  }
+function renderCategoryTabs(){
+  const cats=[...new Set(recipes.map(r=>r.category).filter(Boolean))];
+  document.getElementById('categoryTabs').innerHTML=`<button class="tab-btn ${!currentCategory?'active':''}" onclick="setCategory('')">全部</button>`+cats.map(c=>`<button class="tab-btn ${currentCategory===c?'active':''}" onclick="setCategory('${esc(c)}')">${esc(c)}</button>`).join('');
 }
+function setCategory(c){currentCategory=c;renderCategoryTabs();renderList()}
 
-function saveToStorage() {
-  localStorage.setItem('cookbook_recipes', JSON.stringify(recipes));
-}
-
-// ─── List View ────────────────────────────────────────────────────────────────
-function renderList() {
-  const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
-  let filtered = [...recipes];
-
-  if (q) {
-    filtered = filtered.filter(r =>
-      r.name.toLowerCase().includes(q) ||
-      (r.category && r.category.toLowerCase().includes(q))
-    );
-  }
-  if (currentCategory) {
-    filtered = filtered.filter(r => r.category === currentCategory);
-  }
-
-  filtered.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
-
-  const list = document.getElementById('recipeList');
-  const empty = document.getElementById('emptyState');
-  const tabs = document.getElementById('categoryTabs');
-
-  if (filtered.length === 0 && !q && !currentCategory) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-    tabs.style.display = 'none';
-    return;
-  }
-
-  empty.style.display = 'none';
-  tabs.style.display = 'flex';
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">没有找到匹配的菜谱</div>';
-    return;
-  }
-
-  list.innerHTML = filtered.map(r => {
-    const lastRef = (r.reflections && r.reflections.length > 0)
-      ? r.reflections[r.reflections.length - 1].text.substring(0, 28)
-      : '';
-    const pitCount = r.pits ? r.pits.length : 0;
-    const stepCount = r.steps ? r.steps.length : 0;
-    const meta = [stepCount ? `📝 ${stepCount} 步` : '', pitCount ? `💡 ${pitCount} 条心得` : ''].filter(Boolean).join(' · ');
-
-    return `
-      <div class="recipe-card" onclick="showDetail('${r.id}')">
-        <div class="recipe-card-title">${esc(r.name)}</div>
-        <div class="recipe-card-meta">${meta || '暂无步骤'}${lastRef ? ' · ' + esc(lastRef) + '…' : ''}</div>
-        <div class="recipe-card-tags">
-          ${r.category ? `<span class="tag">${esc(r.category)}</span>` : ''}
-          ${pitCount > 0 ? `<span class="tag">💡 ${pitCount}</span>` : ''}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function renderCategoryTabs() {
-  const cats = [...new Set(recipes.map(r => r.category).filter(Boolean))];
-  const container = document.getElementById('categoryTabs');
-  container.innerHTML = `
-    <button class="tab-btn ${!currentCategory ? 'active' : ''}" onclick="setCategory('')">全部</button>
-    ${cats.map(c => `<button class="tab-btn ${currentCategory === c ? 'active' : ''}" onclick="setCategory('${esc(c)}')">${esc(c)}</button>`).join('')}
-  `;
-}
-
-function setCategory(cat) {
-  currentCategory = cat;
-  renderCategoryTabs();
-  renderList();
-}
-
-// ─── Detail View ─────────────────────────────────────────────────────────────
-function showDetail(id) {
-  currentId = id;
-  const r = recipes.find(x => x.id === id);
-  if (!r) return;
-
+// ─── Detail ──────────────────────────────────────────────────────────────────
+function showDetail(id){
+  currentId=id;const r=recipes.find(x=>x.id===id);if(!r)return;
   document.getElementById('listView').classList.add('hidden');
   document.getElementById('detailView').classList.add('active');
-  document.getElementById('detailTitle').textContent = r.name;
+  document.getElementById('detailTitle').textContent=r.name;
 
-  // Source (collapsed by default)
-  const srcSection = document.getElementById('sourceSection');
-  const srcExpanded = document.getElementById('sourceExpanded');
-  const srcContent = document.getElementById('detailSource');
-  if (r.source && r.source.trim()) {
-    srcSection.style.display = 'block';
-    srcExpanded.classList.remove('show');
-    const isUrl = r.source.match(/^https?:\/\//);
-    srcContent.innerHTML = isUrl
-      ? `<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`
-      : esc(r.source);
-  } else {
-    srcSection.style.display = 'none';
-  }
+  // Ingredients
+  const ingS=document.getElementById('ingSection'),ingEl=document.getElementById('detailIngredients');
+  if(r.ingredients&&r.ingredients.length){ingS.style.display='block';ingEl.innerHTML=r.ingredients.map(i=>`<li style="padding:8px 0;border-bottom:1px dotted var(--border);font-size:15px;line-height:1.5">${esc(i)}</li>`).join('');ingEl.parentElement.querySelector('.detail-section-title').insertAdjacentElement('afterend',ingEl);}
+  else{ingS.style.display='none'}
+
+  // Prep
+  const prepS=document.getElementById('prepSection'),prepEl=document.getElementById('detailPrep');
+  if(r.prep&&r.prep.length){prepS.style.display='block';prepEl.innerHTML=r.prep.map(p=>`<li style="padding:8px 0;border-bottom:1px dotted var(--border);font-size:15px;line-height:1.5">${esc(p)}</li>`).join('');}
+  else{prepS.style.display='none'}
+
+  // Source
+  const srcS=document.getElementById('sourceSection'),srcEx=document.getElementById('sourceExpanded'),srcC=document.getElementById('detailSource');
+  if(r.source&&r.source.trim()){srcS.style.display='block';srcEx.classList.remove('show');srcC.innerHTML=r.source.match(/^https?:\/\//)?`<a href="${esc(r.source)}" target="_blank" rel="noopener">${esc(r.source)}</a>`:esc(r.source)}
+  else srcS.style.display='none';
 
   // Steps
-  const stepsSection = document.getElementById('stepsSection');
-  const stepsEl = document.getElementById('detailSteps');
-  if (r.steps && r.steps.length > 0) {
-    stepsSection.style.display = 'block';
-    stepsEl.innerHTML = r.steps.map((s, i) => {
-      const main = typeof s === 'string' ? s : (s.main || '');
-      const detail = typeof s === 'string' ? '' : (s.detail || '');
-      return `
-        <div class="step-card ${detail ? '' : 'no-detail'}" onclick="toggleStep(this)">
-          <div class="step-card-header">
-            <div class="step-num">${i + 1}</div>
-            <div class="step-main">${esc(main)}</div>
-            ${detail ? '<div class="step-indicator">▼ 展开</div>' : ''}
-          </div>
-          ${detail ? `<div class="step-detail">${esc(detail)}</div>` : ''}
-        </div>
-      `;
-    }).join('');
-  } else {
-    stepsSection.style.display = 'block';
-    stepsEl.innerHTML = '<div class="no-data">还没有步骤</div>';
-  }
+  const stepsEl=document.getElementById('detailSteps');
+  if(r.steps&&r.steps.length){document.getElementById('stepsSection').style.display='block';
+    stepsEl.innerHTML=r.steps.map((s,i)=>{const m=typeof s==='string'?s:(s.main||''),d=typeof s==='string'?'':(s.detail||'');return`<div class="step-card${d?'':' no-detail'}" onclick="toggleStep(this)"><div class="step-card-header"><div class="step-num">${i+1}</div><div class="step-main">${esc(m)}</div>${d?'<div class="step-indicator">▼ 展开</div>':''}</div>${d?`<div class="step-detail">${esc(d)}</div>`:''}</div>`}).join('');
+  }else{stepsEl.innerHTML='<div class="no-data">还没有步骤</div>'}
 
   // Pits
-  const pitsSection = document.getElementById('pitsSection');
-  const pitsEl = document.getElementById('detailPits');
-  if (r.pits && r.pits.length > 0) {
-    pitsSection.style.display = 'block';
-    pitsEl.innerHTML = r.pits.map(p => `<div class="pit-item">${esc(p)}</div>`).join('');
-  } else {
-    pitsSection.style.display = 'none';
-  }
+  const pitsS=document.getElementById('pitsSection'),pitsEl=document.getElementById('detailPits');
+  if(r.pits&&r.pits.length){pitsS.style.display='block';pitsEl.innerHTML=r.pits.map(p=>`<div class="pit-item">${esc(p)}</div>`).join('')}
+  else pitsS.style.display='none';
 
   // Reflections
-  const refsEl = document.getElementById('detailReflections');
-  if (r.reflections && r.reflections.length > 0) {
-    refsEl.innerHTML = [...r.reflections].reverse().map(ref => `
-      <div class="ref-item">
-        <div class="ref-date">${new Date(ref.date).toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'})}</div>
-        ${esc(ref.text)}
-      </div>
-    `).join('');
-  } else {
-    refsEl.innerHTML = '<div class="no-data">还没有食味笔记</div>';
-  }
-
-  document.getElementById('newReflection').value = '';
-  document.getElementById('newPit').value = '';
-  window.scrollTo(0, 0);
+  const refsEl=document.getElementById('detailReflections');
+  refsEl.innerHTML=r.reflections&&r.reflections.length?[...r.reflections].reverse().map(ref=>`<div class="ref-item"><div class="ref-date">${new Date(ref.date).toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'})}</div>${esc(ref.text)}</div>`).join(''):'<div class="no-data">还没有食味笔记</div>';
+  document.getElementById('newReflection').value='';document.getElementById('newPit').value='';window.scrollTo(0,0);
 }
 
-function showList() {
-  document.getElementById('detailView').classList.remove('active');
-  document.getElementById('listView').classList.remove('hidden');
-  currentId = null;
-}
-
-function toggleSource() {
-  const expanded = document.getElementById('sourceExpanded');
-  const arrow = document.querySelector('#sourceCollapsed .arrow');
-  const isOpen = expanded.classList.contains('show');
-  if (isOpen) {
-    expanded.classList.remove('show');
-    arrow.textContent = '▸';
-  } else {
-    expanded.classList.add('show');
-    arrow.textContent = '▾';
-  }
-}
-
-function copySource() {
-  const srcEl = document.getElementById('detailSource');
-  const text = srcEl.textContent.trim();
-  if (text) {
-    navigator.clipboard.writeText(text).then(() => toast('已复制 ✓')).catch(() => toast('复制失败'));
-  }
-}
-
-function toggleStep(card) {
-  const wasExpanded = card.classList.contains('expanded');
-  card.classList.toggle('expanded');
-  const indicator = card.querySelector('.step-indicator');
-  if (indicator) {
-    indicator.textContent = wasExpanded ? '▼ 展开' : '▲ 收起';
-  }
-}
-
-function toggleReflectionForm(el) {
-  el.classList.toggle('open');
-  el.nextElementSibling.classList.toggle('show');
-}
-
-function addReflection() {
-  const text = document.getElementById('newReflection').value.trim();
-  const pit = document.getElementById('newPit').value.trim();
-  if (!text && !pit) { toast('至少填写一项'); return; }
-
-  const r = recipes.find(x => x.id === currentId);
-  if (!r) return;
-
-  if (text) {
-    if (!r.reflections) r.reflections = [];
-    r.reflections.push({ text, date: new Date().toISOString() });
-  }
-  if (pit) {
-    if (!r.pits) r.pits = [];
-    const pits = pit.split('\n').filter(Boolean);
-    r.pits = [...new Set([...r.pits, ...pits])];
-  }
-  r.updatedAt = new Date().toISOString();
-  saveToStorage();
-  showDetail(currentId);
-  toast('已保存 ✓');
-}
+function showList(){document.getElementById('detailView').classList.remove('active');document.getElementById('listView').classList.remove('hidden');currentId=null}
+function toggleSource(){const e=document.getElementById('sourceExpanded'),a=document.querySelector('#sourceCollapsed .arrow');if(e.classList.contains('show')){e.classList.remove('show');a.textContent='▸'}else{e.classList.add('show');a.textContent='▾'}}
+function copySource(){const t=document.getElementById('detailSource').textContent.trim();if(t)navigator.clipboard.writeText(t).then(()=>toast('已复制 ✓')).catch(()=>toast('复制失败'))}
+function toggleStep(card){const was=card.classList.contains('expanded');card.classList.toggle('expanded');const ind=card.querySelector('.step-indicator');if(ind)ind.textContent=was?'▼ 展开':'▲ 收起'}
+function toggleReflectionForm(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('show')}
+function addReflection(){const text=document.getElementById('newReflection').value.trim(),pit=document.getElementById('newPit').value.trim();if(!text&&!pit){toast('至少填写一项');return}const r=recipes.find(x=>x.id===currentId);if(!r)return;if(text){if(!r.reflections)r.reflections=[];r.reflections.push({text,date:new Date().toISOString()})}if(pit){if(!r.pits)r.pits=[];r.pits=[...new Set([...r.pits,...pit.split('\n').filter(Boolean)])]}r.updatedAt=new Date().toISOString();saveToStorage();showDetail(currentId);toast('已保存 ✓')}
 
 // ─── Delete ──────────────────────────────────────────────────────────────────
-function confirmDelete() {
-  const r = recipes.find(x => x.id === currentId);
-  if (!r) return;
-  pendingDeleteId = currentId;
-  document.getElementById('confirmSub').textContent = `「${r.name}」的所有数据将被永久删除`;
-  document.getElementById('confirmOverlay').classList.add('active');
-}
+function confirmDelete(){const r=recipes.find(x=>x.id===currentId);if(!r)return;pendingDeleteId=currentId;document.getElementById('confirmSub').textContent=`「${r.name}」的所有数据将被永久删除`;document.getElementById('confirmOverlay').classList.add('active')}
+function cancelDelete(){document.getElementById('confirmOverlay').classList.remove('active');pendingDeleteId=null}
+function doDelete(){if(!pendingDeleteId)return;recipes=recipes.filter(x=>x.id!==pendingDeleteId);saveToStorage();document.getElementById('confirmOverlay').classList.remove('active');pendingDeleteId=null;showList();renderCategoryTabs();toast('已删除')}
+function editCurrentRecipe(){showAddModal(currentId)}
 
-function cancelDelete() {
-  document.getElementById('confirmOverlay').classList.remove('active');
-  pendingDeleteId = null;
-}
-
-function doDelete() {
-  if (!pendingDeleteId) return;
-  recipes = recipes.filter(x => x.id !== pendingDeleteId);
-  saveToStorage();
-  document.getElementById('confirmOverlay').classList.remove('active');
-  pendingDeleteId = null;
-  showList();
-  renderCategoryTabs();
-  toast('已删除');
-}
-
-function editCurrentRecipe() {
-  showAddModal(currentId);
-}
-
-// ─── Add / Edit ──────────────────────────────────────────────────────────────
-function showAddModal(editId) {
-  editingId = editId || null;
+// ─── Add / Edit Form ─────────────────────────────────────────────────────────
+function showAddModal(editId){
+  editingId=editId||null;
   document.getElementById('addModal').classList.add('active');
-  document.getElementById('modalTitle').textContent = editingId ? '编辑菜谱' : '添加菜谱';
-  document.getElementById('saveBtn').textContent = editingId ? '更新菜谱' : '保存菜谱';
+  document.getElementById('modalTitle').textContent=editingId?'编辑菜谱':'添加菜谱';
+  document.getElementById('saveBtn').textContent=editingId?'更新菜谱':'保存菜谱';
+  if(editingId){const r=recipes.find(x=>x.id===editingId);if(r){document.getElementById('recipeName').value=r.name;document.getElementById('recipeCategory').value=r.category||'';document.getElementById('recipeSource').value=r.source||'';document.getElementById('recipeIngredients').value=(r.ingredients||[]).join('\n');document.getElementById('recipePrep').value=(r.prep||[]).join('\n');document.getElementById('recipePits').value=(r.pits||[]).join('\n');renderStepEditor(r.steps||[])}}else{document.getElementById('recipeName').value='';document.getElementById('recipeCategory').value='';document.getElementById('recipeSource').value='';document.getElementById('recipeIngredients').value='';document.getElementById('recipePrep').value='';document.getElementById('recipePits').value='';renderStepEditor([]);addStepField()}
+}
+function showDataModal(){document.getElementById('dataModal').classList.add('active');document.getElementById('dataCount').textContent=recipes.length;const u=recipes.map(r=>new Date(r.updatedAt||r.createdAt));const l=u.length?new Date(Math.max(...u)):null;document.getElementById('dataDate').textContent=l?l.toLocaleDateString('zh-CN'):'—'}
+function closeAddModal(){document.getElementById('addModal').classList.remove('active');editingId=null}
+function closeDataModal(){document.getElementById('dataModal').classList.remove('active')}
 
-  if (editingId) {
-    const r = recipes.find(x => x.id === editingId);
-    if (r) {
-      document.getElementById('recipeName').value = r.name;
-      document.getElementById('recipeCategory').value = r.category || '';
-      document.getElementById('recipeSource').value = r.source || '';
-      document.getElementById('recipePits').value = (r.pits || []).join('\n');
-      renderStepEditor(r.steps || []);
-    }
-  } else {
-    document.getElementById('recipeName').value = '';
-    document.getElementById('recipeCategory').value = '';
-    document.getElementById('recipeSource').value = '';
-    document.getElementById('recipePits').value = '';
-    renderStepEditor([]);
-    addStepField();
-  }
+// Step Editor
+function stepEditorHtml(i,m,d){return`<div class="step-editor-row" id="step-row-${i}"><div class="step-editor-header"><div class="step-num">${i+1}</div><input type="text" value="${esc(m)}" placeholder="主要步骤"><div class="step-reorder"><button title="上移" ${i===0?'disabled':''} onclick="moveStep(${i},-1)">▲</button><button title="下移" onclick="moveStep(${i},1)">▼</button></div><button class="step-del-btn" onclick="removeStep(${i})">×</button></div><div class="step-editor-detail"><textarea placeholder="小字说明 / 注意事项…">${esc(d)}</textarea></div></div>`}
+
+function renderStepEditor(steps){
+  const n=steps.map(s=>typeof s==='string'?{main:s,detail:''}:{main:s.main||'',detail:s.detail||''});
+  document.getElementById('stepsEditor').innerHTML=n.map((s,i)=>stepEditorHtml(i,s.main,s.detail)).join('');
 }
 
-function showDataModal() {
-  document.getElementById('dataModal').classList.add('active');
-  document.getElementById('dataCount').textContent = recipes.length;
-  const updated = recipes.map(r => new Date(r.updatedAt || r.createdAt));
-  const latest = updated.length ? new Date(Math.max(...updated)) : null;
-  document.getElementById('dataDate').textContent = latest ? latest.toLocaleDateString('zh-CN') : '—';
+function addStepField(){
+  const c=document.getElementById('stepsEditor'),idx=c.querySelectorAll('.step-editor-row').length;
+  c.insertAdjacentHTML('beforeend',stepEditorHtml(idx,'',''));
+  const inp=c.querySelector(`#step-row-${idx} input`);
+  if(inp)inp.focus();
 }
 
-function closeAddModal() {
-  document.getElementById('addModal').classList.remove('active');
-  editingId = null;
+function removeStep(idx){
+  document.getElementById('step-row-'+idx)?.remove();
+  renumberSteps();
 }
 
-function closeDataModal() {
-  document.getElementById('dataModal').classList.remove('active');
+function moveStep(idx,dir){
+  const c=document.getElementById('stepsEditor'),rows=[...c.querySelectorAll('.step-editor-row')];
+  const target=idx+dir;if(target<0||target>=rows.length)return;
+  const a=rows[idx],b=rows[target];
+  if(dir<0)b.insertAdjacentElement('beforebegin',a);else b.insertAdjacentElement('afterend',a);
+  renumberSteps();
 }
 
-// Step editor
-function renderStepEditor(steps) {
-  const container = document.getElementById('stepsEditor');
-  const normalized = steps.map(s => typeof s === 'string' ? { main: s, detail: '' } : { main: s.main || '', detail: s.detail || '' });
-  container.innerHTML = normalized.map((s, i) => stepEditorHtml(i, s.main, s.detail)).join('');
+function renumberSteps(){
+  const rows=document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
+  rows.forEach((row,i)=>{row.id='step-row-'+i;row.querySelector('.step-num').textContent=i+1;const dbtn=row.querySelector('.step-reorder');
+  if(dbtn){dbtn.querySelectorAll('button')[0].disabled=i===0}})
 }
 
-function stepEditorHtml(i, main, detail) {
-  return `
-    <div class="step-editor-row" id="step-row-${i}">
-      <div class="step-editor-header">
-        <div class="step-num">${i + 1}</div>
-        <input type="text" value="${esc(main)}" placeholder="主要步骤" oninput="updateStepField(this)" data-field="main" data-idx="${i}">
-        <button class="step-del-btn" onclick="removeStep(${i})">×</button>
-      </div>
-      <div class="step-editor-detail">
-        <textarea placeholder="小字说明 / 注意事项…" oninput="updateStepField(this)" data-field="detail" data-idx="${i}">${esc(detail)}</textarea>
-      </div>
-    </div>
-  `;
-}
-
-function addStepField() {
-  const container = document.getElementById('stepsEditor');
-  const idx = container.querySelectorAll('.step-editor-row').length;
-  container.insertAdjacentHTML('beforeend', stepEditorHtml(idx, '', ''));
-  container.lastElementChild.querySelector('input').focus();
-}
-
-function removeStep(idx) {
-  document.getElementById('step-row-' + idx)?.remove();
-  // Re-number
-  const rows = document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
-  rows.forEach((row, i) => {
-    row.id = 'step-row-' + i;
-    row.querySelector('.step-num').textContent = i + 1;
-    row.querySelectorAll('input, textarea').forEach(el => el.setAttribute('data-idx', i));
-  });
-}
-
-function updateStepField(el) {
-  // no-op, values are collected on save
-}
-
-function collectStepFields() {
-  const rows = document.getElementById('stepsEditor').querySelectorAll('.step-editor-row');
-  const steps = [];
-  rows.forEach(row => {
-    const main = (row.querySelector('input')?.value || '').trim();
-    const detail = (row.querySelector('textarea')?.value || '').trim();
-    if (main) steps.push({ main, detail });
-  });
+function collectStepFields(){
+  const rows=document.getElementById('stepsEditor').querySelectorAll('.step-editor-row'),steps=[];
+  rows.forEach(row=>{const m=(row.querySelector('input')?.value||'').trim(),d=(row.querySelector('textarea')?.value||'').trim();if(m)steps.push({main:m,detail:d})});
   return steps;
 }
 
-function saveRecipe() {
-  const name = document.getElementById('recipeName').value.trim();
-  if (!name) { toast('请填写菜名'); return; }
-
-  const steps = collectStepFields();
-  const pits = document.getElementById('recipePits').value.split('\n').map(p => p.trim()).filter(Boolean);
-
-  if (editingId) {
-    const r = recipes.find(x => x.id === editingId);
-    if (r) {
-      r.name = name;
-      r.category = document.getElementById('recipeCategory').value;
-      r.source = document.getElementById('recipeSource').value.trim();
-      r.steps = steps;
-      r.pits = pits;
-      r.updatedAt = new Date().toISOString();
-    }
-  } else {
-    recipes.push({
-      id: 'r_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      name,
-      category: document.getElementById('recipeCategory').value,
-      source: document.getElementById('recipeSource').value.trim(),
-      steps,
-      pits,
-      reflections: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-  }
-
-  saveToStorage();
-  closeAddModal();
-  renderList();
-  renderCategoryTabs();
-  toast(editingId ? '已更新 ✓' : '已保存 ✓');
+function saveRecipe(){
+  const name=document.getElementById('recipeName').value.trim();if(!name){toast('请填写菜名');return}
+  const steps=collectStepFields();
+  const ingredients=document.getElementById('recipeIngredients').value.split('\n').map(p=>p.trim()).filter(Boolean);
+  const prep=document.getElementById('recipePrep').value.split('\n').map(p=>p.trim()).filter(Boolean);
+  const pits=document.getElementById('recipePits').value.split('\n').map(p=>p.trim()).filter(Boolean);
+  if(editingId){const r=recipes.find(x=>x.id===editingId);if(r){r.name=name;r.category=document.getElementById('recipeCategory').value;r.source=document.getElementById('recipeSource').value.trim();r.ingredients=ingredients;r.prep=prep;r.steps=steps;r.pits=pits;r.updatedAt=new Date().toISOString()}}
+  else{recipes.push({id:'r_'+Date.now()+'_'+Math.random().toString(36).substr(2,6),name,category:document.getElementById('recipeCategory').value,source:document.getElementById('recipeSource').value.trim(),ingredients,prep,steps,pits,reflections:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()})}
+  saveToStorage();closeAddModal();renderList();renderCategoryTabs();toast(editingId?'已更新 ✓':'已保存 ✓');
 }
 
 // ─── Export / Import ─────────────────────────────────────────────────────────
-function exportData() {
-  if (recipes.length === 0) { toast('没有数据可导出'); return; }
-  const blob = new Blob([JSON.stringify(recipes, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `做饭助手_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('已导出 ✓');
-}
-
-function importData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data)) throw new Error('格式错误');
-      // Migrate old format
-      data.forEach(r => {
-        if (r.steps && r.steps.length > 0 && typeof r.steps[0] === 'string') {
-          r.steps = r.steps.map(s => ({ main: s, detail: '' }));
-        }
-      });
-      recipes = data;
-      saveToStorage();
-      renderList();
-      renderCategoryTabs();
-      closeDataModal();
-      toast(`已导入 ${data.length} 条菜谱 ✓`);
-    } catch {
-      toast('导入失败：文件格式不正确');
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
+function exportData(){if(!recipes.length){toast('没有数据可导出');return}const b=new Blob([JSON.stringify(recipes,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='做饭助手_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(u);toast('已导出 ✓')}
+function importData(event){const f=event.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!Array.isArray(d))throw new Error('格式错误');d.forEach(fixRecipe);recipes=d;saveToStorage();renderList();renderCategoryTabs();closeDataModal();toast('已导入 '+d.length+' 条菜谱 ✓')}catch{toast('导入失败：文件格式不正确')}};r.readAsText(f);event.target.value=''}
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
-function esc(s) { if (!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2000)}
 
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 2000);
-}
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
 init();
 </script>
 </body>
