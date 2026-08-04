@@ -371,6 +371,20 @@ header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
   </div>
 </div>
 
+<!-- 同步导入选择弹窗（合并 / 替换） -->
+<div class="confirm-overlay" id="syncChoiceOverlay">
+  <div class="confirm-box">
+    <div class="icon">📥</div>
+    <div class="msg">收到云端菜谱</div>
+    <div class="sub" id="syncChoiceSub"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn-primary" style="margin:0" onclick="syncMergeImport()">🔀 合并到现有菜谱</button>
+      <button style="width:100%;background:#fee2e2;color:var(--danger);border:none;padding:12px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer" onclick="syncReplaceImport()">🔄 全部替换</button>
+      <button style="width:100%;background:#f1f5f9;color:var(--text-secondary);border:none;padding:12px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer" onclick="cancelSyncImport()">取消</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
@@ -867,20 +881,48 @@ function syncPull(){
   }
 }
 
-function showSyncMergeConfirm(remote,pasteId){
-  const existing=new Set(recipes.map(r=>r.id));
-  const newOnly=remote.filter(r=>!existing.has(r.id));
-  const conflicts=remote.filter(r=>existing.has(r.id));
-  let msg=`云端共 ${remote.length} 条菜谱\n`;
-  if(newOnly.length)msg+=`· ${newOnly.length} 条新菜谱可直接导入\n`;
-  if(conflicts.length)msg+=`· ${conflicts.length} 条本地已有（云端更新会覆盖本地）\n`;
-  msg+='\n选择合并方式：';
-  const ok=confirm(msg+'\n\n【确定】=全部覆盖（用云端版本替换本地）\n【取消】=稍后再说');
-  if(!ok){closeSyncPull();return}
-  recipes=remote;
+let _pendingSyncData = null;
+
+function showSyncMergeConfirm(remote){
+  _pendingSyncData = remote;
+  const existing = new Set(recipes.map(r => r.id));
+  const newOnly = remote.filter(r => !existing.has(r.id));
+  const conflicts = remote.filter(r => existing.has(r.id));
+  let msg = `云端共 ${remote.length} 条菜谱`;
+  if(newOnly.length) msg += `\n· ${newOnly.length} 条新菜谱可加入`;
+  if(conflicts.length) msg += `\n· ${conflicts.length} 条本地已有`;
+  document.getElementById('syncChoiceSub').textContent = msg;
+  document.getElementById('syncChoiceOverlay').classList.add('active');
+  // 关闭其它弹窗
+  document.getElementById('syncPullModal').classList.remove('active');
+  document.getElementById('dataModal').classList.remove('active');
+}
+
+function syncMergeImport(){
+  if(!_pendingSyncData) return;
+  const remote = _pendingSyncData;
+  const existingIds = new Set(recipes.map(r => r.id));
+  const newOnes = remote.filter(r => !existingIds.has(r.id));
+  const dupes = remote.length - newOnes.length;
+  recipes = [...recipes, ...newOnes];
   saveToStorage();renderList();renderCategoryTabs();
-  closeSyncPull();
-  toast(`已同步 ${remote.length} 条 ✓`);
+  document.getElementById('syncChoiceOverlay').classList.remove('active');
+  _pendingSyncData = null;
+  toast(`已合并：新增 ${newOnes.length} 条${dupes ? `，跳过 ${dupes} 条重复` : ''} ✓`);
+}
+
+function syncReplaceImport(){
+  if(!_pendingSyncData) return;
+  recipes = _pendingSyncData;
+  saveToStorage();renderList();renderCategoryTabs();
+  document.getElementById('syncChoiceOverlay').classList.remove('active');
+  _pendingSyncData = null;
+  toast(`已替换为 ${recipes.length} 条 ✓`);
+}
+
+function cancelSyncImport(){
+  document.getElementById('syncChoiceOverlay').classList.remove('active');
+  _pendingSyncData = null;
 }
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
