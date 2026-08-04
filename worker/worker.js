@@ -1,14 +1,6 @@
-// 做饭助手 - AI 识图中转 Worker
+// 做饭助手 - AI 识图中转 Worker (Service Worker 格式)
 // 保护 API key：前端只传图片，Worker 负责调用三方 LLM
-// 部署：wrangler deploy
-
-// 允许的来源（生产环境可收紧为你的 GitHub Pages 域名）
-const ALLOWED_ORIGINS = [
-  'https://tangxuepu.github.io',
-  'https://tangxuepu.github.io/cookbook',
-  'http://localhost:*',
-  'null'  // file:// 打开时 Origin 为 null
-];
+// 部署：curl PUT /workers/scripts/cookbook-ai-import
 
 // CORS 头
 function corsHeaders(origin) {
@@ -20,53 +12,21 @@ function corsHeaders(origin) {
   };
 }
 
-export default {
-  async fetch(request, env) {
-    const origin = request.headers.get('Origin') || '';
-    
-    // OPTIONS 预检
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+function json(obj, status, origin) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...corsHeaders(origin)
     }
+  });
+}
 
-    // 仅允许 POST /import
-    if (request.method !== 'POST' || !request.url.endsWith('/import')) {
-      return json({ error: 'Not found' }, 404, origin);
-    }
+async function recognizeRecipe(images) {
+  const apiKey = globalThis.LLM_API_KEY;
+  const baseUrl = globalThis.LLM_BASE_URL || 'https://api.llm-token.cn/v1';
+  const model = globalThis.LLM_MODEL || 'claude-sonnet-4-6';
 
-    // 解析 body
-    let body;
-    try {
-      body = await request.json();
-    } catch (e) {
-      return json({ error: 'Invalid JSON' }, 400, origin);
-    }
-
-    const images = Array.isArray(body.images) ? body.images : [];
-    if (!images.length) {
-      return json({ error: '没有收到图片' }, 400, origin);
-    }
-    if (images.length > 9) {
-      return json({ error: '一次最多上传 9 张图片' }, 400, origin);
-    }
-
-    // 调用三方 LLM 识图
-    try {
-      const recipe = await recognizeRecipe(images, env);
-      return json({ recipe }, 200, origin);
-    } catch (err) {
-      console.error('recognize error:', err.message);
-      return json({ error: 'AI 识别失败：' + err.message }, 502, origin);
-    }
-  }
-};
-
-async function recognizeRecipe(images, env) {
-  const apiKey = env.LLM_API_KEY;
-  const baseUrl = env.LLM_BASE_URL || 'https://api.llm-token.cn/v1';
-  const model = env.LLM_MODEL || 'claude-sonnet-4-6';
-
-  // 构造多模态消息
   const content = [
     {
       type: 'text',
@@ -121,25 +81,18 @@ async function recognizeRecipe(images, env) {
 
   const data = await res.json();
   const raw = data.choices?.[0]?.message?.content || '';
-
-  // 提取 JSON（模型可能包在 ```json 代码块里）
   return parseRecipeJSON(raw);
 }
 
 function parseRecipeJSON(raw) {
   let text = raw.trim();
-  // 去掉 ```json 围栏
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
   if (fence) text = fence[1].trim();
-
-  // 找第一个 { 到最后一个 }
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   if (start === -1 || end === -1) throw new Error('模型返回格式不正确');
-
   const obj = JSON.parse(text.slice(start, end + 1));
 
-  // 规范化
   const recipe = {
     name: String(obj.name || '').trim(),
     category: String(obj.category || '').trim(),
@@ -155,12 +108,39 @@ function parseRecipeJSON(raw) {
   return recipe;
 }
 
-function json(obj, status, origin) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      ...corsHeaders(origin)
-    }
-  });
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
+
+async function handleRequest(request) {
+  const origin = request.headers.get('Origin') || '';
+
+  // OPTIONS 预检
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders(origin) });
+  }
+
+  const url = new URL(request.url);
+  if (request.method !== 'POST' || !url.pathname.endsWith('/import')) {
+    return json({ error: 'Not found' }, 404, origin);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: 'Invalid JSON' }, 400, origin);
+  }
+
+  const images = Array.isArray(body.images) ? body.images : [];
+  if (!images.length) return json({ error: '没有收到图片' }, 400, origin);
+  if (images.length > 9) return json({ error: '一次最多上传 9 张图片' }, 400, origin);
+
+  try {
+    const recipe = await recognizeRecipe(images);
+    return json({ recipe }, 200, origin);
+  } catch (err) {
+    console.error('recognize error:', err.message);
+    return json({ error: 'AI 识别失败：' + err.message }, 502, origin);
+  }
 }

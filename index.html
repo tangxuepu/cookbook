@@ -538,8 +538,8 @@ function saveRecipe(){
 }
 
 // ─── AI 图片导入（识图生成菜谱草稿）───────────────────────────────────────
-// Worker 中转地址（保护 API key，部署后填写）
-const AI_WORKER_URL = '';  // TODO: 部署 Cloudflare Worker 后填写
+// Worker 中转地址（保护 API key）
+const AI_WORKER_URL = 'https://cookbook-ai-import.4215tangxuepu.workers.dev';
 
 let importImages = [];  // {b64, name}
 
