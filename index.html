@@ -319,7 +319,13 @@ header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
 
     <!-- 本地导入导出 -->
     <div class="data-section-title">💾 本地备份</div>
-    <div class="data-actions"><button onclick="exportData()">📤 导出 JSON</button><button onclick="document.getElementById('import-file').click()">📥 导入 JSON</button><input type="file" id="import-file" accept=".json" onchange="importData(event)"></div>
+    <div class="data-actions"><button onclick="exportData()">📤 导出 JSON</button></div>
+    <div class="data-actions" style="margin-top:6px">
+      <button onclick="importFile('merge')">📥 导入·合并</button>
+      <button onclick="importFile('replace')">📥 导入·替换</button>
+      <input type="file" id="import-file" accept=".json" onchange="importData(event)">
+    </div>
+    <div style="margin-top:6px;font-size:12px;color:var(--text-secondary)">合并：保留现有菜谱，加入导入的新菜谱（按 ID 去重）<br>替换：清空现有菜谱，完全用导入文件的内容</div>
 
     <!-- 云端同步 -->
     <div class="data-section-title">☁️ 电脑 ↔ 手机同步</div>
@@ -726,7 +732,42 @@ function fillAddFormFromAI(recipe){
 
 // ─── Export / Import ─────────────────────────────────────────────────────────
 function exportData(){if(!recipes.length){toast('没有数据可导出');return}const b=new Blob([JSON.stringify(recipes,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='做饭助手_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(u);toast('已导出 ✓')}
-function importData(event){const f=event.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!Array.isArray(d))throw new Error('格式错误');d.forEach(fixRecipe);recipes=d;saveToStorage();renderList();renderCategoryTabs();closeDataModal();toast('已导入 '+d.length+' 条菜谱 ✓')}catch{toast('导入失败：文件格式不正确')}};r.readAsText(f);event.target.value=''}
+let pendingImportMode = 'merge';
+function importFile(mode){
+  pendingImportMode = mode;
+  document.getElementById('import-file').click();
+}
+
+function importData(event){
+  const f = event.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try{
+      const d = JSON.parse(e.target.result);
+      if(!Array.isArray(d)) throw new Error('格式错误');
+      d.forEach(fixRecipe);
+
+      if(pendingImportMode === 'replace'){
+        recipes = d;
+        saveToStorage();renderList();renderCategoryTabs();closeDataModal();
+        toast('已替换为 ' + d.length + ' 条菜谱 ✓');
+      } else {
+        // 合并：按 id 去重，保留本地已有的
+        const existingIds = new Set(recipes.map(x => x.id));
+        const newOnes = d.filter(x => !existingIds.has(x.id));
+        const dupes = d.length - newOnes.length;
+        recipes = [...recipes, ...newOnes];
+        saveToStorage();renderList();renderCategoryTabs();closeDataModal();
+        toast(`合并完成：新增 ${newOnes.length} 条${dupes ? `，跳过 ${dupes} 条重复` : ''} ✓`);
+      }
+    }catch{
+      toast('导入失败：文件格式不正确');
+    }
+  };
+  r.readAsText(f);
+  event.target.value = '';
+}
 
 // ─── Cloud Sync (URL-encoded snapshot) ────────────────────────────────────────
 // 方案：菜谱 zlib 压缩 + base64 → 拼进 PWA URL 的 hash 段 → QR 码承载
