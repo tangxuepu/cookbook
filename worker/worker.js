@@ -1,6 +1,8 @@
 // 做饭助手 - AI 识图中转 Worker (Service Worker 格式)
-// 保护 API key：前端只传图片，Worker 负责调用三方 LLM
-// 部署：curl PUT /workers/scripts/cookbook-ai-import
+// 保护 API key：前端只传图片/文本，Worker 负责调用三方 LLM
+// 端点：
+//   POST /import      图片识图 → 菜谱
+//   POST /text-import 文本教程 → 菜谱
 
 // CORS 头
 function corsHeaders(origin) {
@@ -22,15 +24,34 @@ function json(obj, status, origin) {
   });
 }
 
-async function recognizeRecipe(images) {
-  const apiKey = globalThis.LLM_API_KEY;
-  const baseUrl = globalThis.LLM_BASE_URL || 'https://api.llm-token.cn/v1';
-  const model = globalThis.LLM_MODEL || 'claude-sonnet-4-6';
+// 识别提示词（图片/文本共用，通过 mode 区分）
+function buildPrompt(mode) {
+  if (mode === 'text') {
+    return `你是专业的菜谱整理助手。用户会粘贴一段做菜教程的文字（可能比较口语化、杂乱）。
 
-  const content = [
-    {
-      type: 'text',
-      text: `你是专业的菜谱整理助手。用户上传了做菜教程的截图（可能多张，按做菜顺序排列）。
+请仔细阅读这段文字，整理成结构化菜谱。
+
+要求：
+1. 菜名：从文字中识别
+2. 食材清单：每行一种，格式「食材名 + 用量」（用量不确定就只写食材名）
+3. 准备工作：切菜、调酱、泡发等前置操作
+4. 步骤：按做菜顺序，每条步骤包含 main（主步骤，简洁）和 detail（说明/注意事项/火候/时间等细节）
+5. 掌勺心得：文字中特别提示的注意事项、容易出错的地方
+6. 如果文字信息不足，宁可留空也不要编造
+7. 只返回 JSON，不要任何解释文字
+
+返回格式（严格 JSON）：
+{
+  "name": "菜名",
+  "category": "荤菜|素菜|主食|汤羹|小吃|饮品|其他",
+  "ingredients": ["五花肉 500g", "冰糖 30g"],
+  "prep": ["五花肉切 2cm 方块"],
+  "steps": [{"main": "炒糖色", "detail": "小火慢炒，糖色变琥珀色立即下肉"}],
+  "pits": ["糖色容易炒糊，一定小火"]
+}`;
+  }
+  // 图片模式
+  return `你是专业的菜谱整理助手。用户上传了做菜教程的截图（可能多张，按做菜顺序排列）。
 请仔细阅读图片内容，整理成结构化菜谱。
 
 要求：
@@ -50,13 +71,34 @@ async function recognizeRecipe(images) {
   "prep": ["五花肉切 2cm 方块"],
   "steps": [{"main": "炒糖色", "detail": "小火慢炒，糖色变琥珀色立即下肉"}],
   "pits": ["糖色容易炒糊，一定小火"]
-}`
-    },
+}`;
+}
+
+// 调用 LLM（图片）
+async function recognizeRecipe(images) {
+  const content = [
+    { type: 'text', text: buildPrompt('image') },
     ...images.map(b64 => ({
       type: 'image_url',
       image_url: { url: b64 }
     }))
   ];
+  return callLLM(content);
+}
+
+// 调用 LLM（文本）
+async function recognizeTextRecipe(text) {
+  const content = [
+    { type: 'text', text: buildPrompt('text') },
+    { type: 'text', text: '\n\n以下是做菜教程文字：\n' + text }
+  ];
+  return callLLM(content);
+}
+
+async function callLLM(content) {
+  const apiKey = globalThis.LLM_API_KEY;
+  const baseUrl = globalThis.LLM_BASE_URL || 'https://api.llm-token.cn/v1';
+  const model = globalThis.LLM_MODEL || 'claude-sonnet-4-6';
 
   const payload = {
     model,
@@ -104,7 +146,7 @@ function parseRecipeJSON(raw) {
     pits: Array.isArray(obj.pits) ? obj.pits.map(String).map(s => s.trim()).filter(Boolean) : [],
   };
 
-  if (!recipe.name) throw new Error('未能识别出菜名，请检查图片是否清晰');
+  if (!recipe.name) throw new Error('未能识别出菜名，请检查输入内容是否清晰');
   return recipe;
 }
 
@@ -121,10 +163,18 @@ async function handleRequest(request) {
   }
 
   const url = new URL(request.url);
-  if (request.method !== 'POST' || !url.pathname.endsWith('/import')) {
-    return json({ error: 'Not found' }, 404, origin);
+
+  if (request.method === 'POST' && url.pathname.endsWith('/import')) {
+    return handleImport(request, origin);
+  }
+  if (request.method === 'POST' && url.pathname.endsWith('/text-import')) {
+    return handleTextImport(request, origin);
   }
 
+  return json({ error: 'Not found' }, 404, origin);
+}
+
+async function handleImport(request, origin) {
   let body;
   try {
     body = await request.json();
@@ -141,6 +191,27 @@ async function handleRequest(request) {
     return json({ recipe }, 200, origin);
   } catch (err) {
     console.error('recognize error:', err.message);
+    return json({ error: 'AI 识别失败：' + err.message }, 502, origin);
+  }
+}
+
+async function handleTextImport(request, origin) {
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: 'Invalid JSON' }, 400, origin);
+  }
+
+  const text = typeof body.text === 'string' ? body.text.trim() : '';
+  if (!text) return json({ error: '没有收到文本内容' }, 400, origin);
+  if (text.length > 10000) return json({ error: '文本太长（最多 1 万字）' }, 400, origin);
+
+  try {
+    const recipe = await recognizeTextRecipe(text);
+    return json({ recipe }, 200, origin);
+  } catch (err) {
+    console.error('text recognize error:', err.message);
     return json({ error: 'AI 识别失败：' + err.message }, 502, origin);
   }
 }

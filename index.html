@@ -260,28 +260,50 @@ header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
 <div class="modal-overlay" id="importModal">
   <div class="modal">
     <div class="modal-header">
-      <h2>📷 导入菜谱教程</h2>
+      <h2>导入菜谱教程</h2>
       <button class="modal-close" onclick="closeImportModal()">×</button>
     </div>
-    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
-      上传菜谱截图，AI 自动整理成菜谱草稿，确认后保存。
-    </p>
-    <div id="importDropArea" style="border:2px dashed var(--border);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s" onclick="document.getElementById('import-file-input').click()">
-      <div style="font-size:40px;margin-bottom:10px">🖼️</div>
-      <div style="font-size:15px;font-weight:600;color:var(--teal)">点击选择图片</div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-top:6px">支持多张截图（按做菜顺序选）<br>单张 10MB 以内</div>
+    <!-- Tab 切换 -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="importTabImg" class="tab-btn active" onclick="switchImportTab('img')">🖼️ 图片</button>
+      <button id="importTabText" class="tab-btn" onclick="switchImportTab('text')">📝 文本</button>
     </div>
-    <input type="file" id="import-file-input" accept="image/*" multiple style="display:none" onchange="handleImportFiles(this.files)">
-    <div id="importPreview" style="margin-top:16px;display:none">
-      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px" id="importPreviewLabel"></div>
-      <div id="importPreviewThumbs" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px"></div>
-      <button class="btn-primary" id="importStartBtn" style="margin-top:12px" onclick="startImport()">✨ 开始 AI 识别</button>
-      <div style="text-align:center;margin-top:8px"><a href="javascript:void(0)" onclick="clearImportSelection()" style="font-size:13px;color:var(--text-secondary)">重新选择</a></div>
+
+    <!-- 图片模式 -->
+    <div id="importImgPanel">
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+        上传菜谱截图，AI 自动整理成菜谱草稿，确认后保存。
+      </p>
+      <div id="importDropArea" style="border:2px dashed var(--border);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s" onclick="document.getElementById('import-file-input').click()">
+        <div style="font-size:40px;margin-bottom:10px">🖼️</div>
+        <div style="font-size:15px;font-weight:600;color:var(--teal)">点击选择图片</div>
+        <div style="font-size:13px;color:var(--text-secondary);margin-top:6px">支持多张截图（按做菜顺序选）<br>单张 10MB 以内</div>
+      </div>
+      <input type="file" id="import-file-input" accept="image/*" multiple style="display:none" onchange="handleImportFiles(this.files)">
+      <div id="importPreview" style="margin-top:16px;display:none">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px" id="importPreviewLabel"></div>
+        <div id="importPreviewThumbs" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px"></div>
+        <button class="btn-primary" id="importStartBtn" style="margin-top:12px" onclick="startImport()">✨ 开始 AI 识别</button>
+        <div style="text-align:center;margin-top:8px"><a href="javascript:void(0)" onclick="clearImportSelection()" style="font-size:13px;color:var(--text-secondary)">重新选择</a></div>
+      </div>
     </div>
+
+    <!-- 文本模式 -->
+    <div id="importTextPanel" style="display:none">
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+        粘贴做菜教程的文字，AI 自动提取食材、准备、步骤和注意事项。
+      </p>
+      <div class="form-group">
+        <textarea id="importTextInput" rows="8" placeholder="把教程文字粘贴到这里，比如：&#10;五花肉切块冷水下锅焯水，捞出沥干。锅里放冰糖小火炒糖色，变色后下肉翻炒上色，加料酒生抽老抽，倒热水没过肉，放葱姜八角，小火炖 40 分钟，大火收汁…" style="font-size:14px;line-height:1.7"></textarea>
+      </div>
+      <button class="btn-primary" onclick="startTextImport()">✨ 开始 AI 识别</button>
+      <div style="margin-top:10px;font-size:12px;color:var(--text-secondary)">最多 1 万字，口语化描述也可以</div>
+    </div>
+
     <div id="importLoading" style="display:none;text-align:center;padding:30px 0">
       <div style="font-size:36px;margin-bottom:12px" id="importLoadingIcon">🔍</div>
-      <div style="font-size:15px;font-weight:600;color:var(--teal)" id="importLoadingText">正在识别图片…</div>
-      <div style="font-size:13px;color:var(--text-secondary);margin-top:6px" id="importLoadingSub">AI 正在读取图片内容</div>
+      <div style="font-size:15px;font-weight:600;color:var(--teal)" id="importLoadingText">正在识别…</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:6px" id="importLoadingSub">AI 正在整理内容</div>
     </div>
     <div id="importError" style="display:none;margin-top:16px;padding:14px;background:#fef5f5;border-radius:12px;border:1px solid #f3d6d6">
       <div style="font-size:14px;color:var(--danger)" id="importErrorText"></div>
@@ -550,6 +572,16 @@ function showImportModal(){
 
 function closeImportModal(){document.getElementById('importModal').classList.remove('active')}
 
+function switchImportTab(mode){
+  const isImg = mode === 'img';
+  document.getElementById('importTabImg').classList.toggle('active', isImg);
+  document.getElementById('importTabText').classList.toggle('active', !isImg);
+  document.getElementById('importImgPanel').style.display = isImg ? 'block' : 'none';
+  document.getElementById('importTextPanel').style.display = isImg ? 'none' : 'block';
+  document.getElementById('importError').style.display = 'none';
+  document.getElementById('importLoading').style.display = 'none';
+}
+
 function resetImportView(){
   importImages = [];
   document.getElementById('importPreview').style.display = 'none';
@@ -557,6 +589,7 @@ function resetImportView(){
   document.getElementById('importError').style.display = 'none';
   document.getElementById('importDropArea').style.display = 'block';
   document.getElementById('import-file-input').value = '';
+  document.getElementById('importTextInput').value = '';
 }
 
 function handleImportFiles(files){
@@ -644,6 +677,37 @@ async function startImport(){
   }catch(err){
     document.getElementById('importLoading').style.display = 'none';
     document.getElementById('importPreview').style.display = 'block';
+    showImportError('识别失败：' + err.message);
+  }
+}
+
+// AI 文本转菜谱
+async function startTextImport(){
+  const text = document.getElementById('importTextInput').value.trim();
+  if(!text){ toast('请先粘贴教程文字'); return; }
+  if(text.length > 10000){ showImportError('文本太长（最多 1 万字）'); return; }
+
+  document.getElementById('importError').style.display = 'none';
+  document.getElementById('importLoading').style.display = 'block';
+  document.getElementById('importLoadingIcon').textContent = '📝';
+  document.getElementById('importLoadingText').textContent = '正在整理文字…';
+  document.getElementById('importLoadingSub').textContent = 'AI 正在提取食材、步骤和注意事项';
+
+  try{
+    const res = await fetch(AI_WORKER_URL + '/text-import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error){ throw new Error(data.error || ('识别失败 HTTP ' + res.status)); }
+
+    document.getElementById('importLoading').style.display = 'none';
+    closeImportModal();
+    fillAddFormFromAI(data.recipe);
+    toast('AI 识别完成，请确认菜谱内容 ✓');
+  }catch(err){
+    document.getElementById('importLoading').style.display = 'none';
     showImportError('识别失败：' + err.message);
   }
 }
