@@ -154,10 +154,13 @@ header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
 .btn-primary{width:100%;background:var(--teal);color:#fff;border:none;padding:14px;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer}
 .btn-secondary{width:100%;background:#fff;color:var(--text);border:1.5px solid var(--border);padding:14px;border-radius:14px;font-size:16px;cursor:pointer;margin-top:8px}
 
-.data-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.data-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .data-actions button{flex:1;padding:10px;border-radius:10px;font-size:13px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text)}
 .data-actions button:active{background:var(--bg)}
+.data-section-title{font-size:13px;font-weight:700;color:var(--teal-light);margin-top:18px;margin-bottom:8px;letter-spacing:.5px}
 #import-file{display:none}
+
+.qr-box canvas{display:block;max-width:240px;height:auto}
 
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:#1c1917;color:#fff;padding:12px 24px;border-radius:24px;font-size:14px;opacity:0;transition:opacity .3s,transform .3s;z-index:500;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -168,7 +171,10 @@ header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
 <div class="list-view" id="listView">
   <header>
     <h1>🍳 做饭助手</h1>
-    <div class="header-actions"><button class="header-btn" onclick="showDataModal()">📦 数据</button></div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="showImportModal()">📷 导入</button>
+      <button class="header-btn" onclick="showDataModal()">📦 数据</button>
+    </div>
   </header>
   <div class="search-bar"><input type="text" id="searchInput" placeholder="搜索菜名…" oninput="renderList()"></div>
   <div class="category-tabs" id="categoryTabs"></div>
@@ -250,12 +256,84 @@ header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
   </div>
 </div>
 
+<!-- Import Modal -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📷 导入菜谱教程</h2>
+      <button class="modal-close" onclick="closeImportModal()">×</button>
+    </div>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">
+      上传菜谱截图，AI 自动整理成菜谱草稿，确认后保存。
+    </p>
+    <div id="importDropArea" style="border:2px dashed var(--border);border-radius:14px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s" onclick="document.getElementById('import-file-input').click()">
+      <div style="font-size:40px;margin-bottom:10px">🖼️</div>
+      <div style="font-size:15px;font-weight:600;color:var(--teal)">点击选择图片</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:6px">支持多张截图（按做菜顺序选）<br>单张 10MB 以内</div>
+    </div>
+    <input type="file" id="import-file-input" accept="image/*" multiple style="display:none" onchange="handleImportFiles(this.files)">
+    <div id="importPreview" style="margin-top:16px;display:none">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px" id="importPreviewLabel"></div>
+      <div id="importPreviewThumbs" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px"></div>
+      <button class="btn-primary" id="importStartBtn" style="margin-top:12px" onclick="startImport()">✨ 开始 AI 识别</button>
+      <div style="text-align:center;margin-top:8px"><a href="javascript:void(0)" onclick="clearImportSelection()" style="font-size:13px;color:var(--text-secondary)">重新选择</a></div>
+    </div>
+    <div id="importLoading" style="display:none;text-align:center;padding:30px 0">
+      <div style="font-size:36px;margin-bottom:12px" id="importLoadingIcon">🔍</div>
+      <div style="font-size:15px;font-weight:600;color:var(--teal)" id="importLoadingText">正在识别图片…</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:6px" id="importLoadingSub">AI 正在读取图片内容</div>
+    </div>
+    <div id="importError" style="display:none;margin-top:16px;padding:14px;background:#fef5f5;border-radius:12px;border:1px solid #f3d6d6">
+      <div style="font-size:14px;color:var(--danger)" id="importErrorText"></div>
+      <button class="btn-secondary" style="margin-top:12px" onclick="closeImportModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="dataModal">
   <div class="modal">
     <div class="modal-header"><h2>📦 数据管理</h2><button class="modal-close" onclick="closeDataModal()">×</button></div>
     <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px">共 <strong id="dataCount">0</strong> 条菜谱，最后更新 <strong id="dataDate">—</strong></p>
-    <div class="data-actions"><button onclick="exportData()">📤 导出数据</button><button onclick="document.getElementById('import-file').click()">📥 导入数据</button><input type="file" id="import-file" accept=".json" onchange="importData(event)"></div>
+
+    <!-- 本地导入导出 -->
+    <div class="data-section-title">💾 本地备份</div>
+    <div class="data-actions"><button onclick="exportData()">📤 导出 JSON</button><button onclick="document.getElementById('import-file').click()">📥 导入 JSON</button><input type="file" id="import-file" accept=".json" onchange="importData(event)"></div>
+
+    <!-- 云端同步 -->
+    <div class="data-section-title">☁️ 电脑 ↔ 手机同步</div>
+    <div class="data-actions">
+      <button onclick="syncPush()">📤 推送到手机</button>
+      <button onclick="showSyncPull()">📥 接收同步数据</button>
+    </div>
+    <div style="margin-top:10px;padding:12px;background:var(--sky-light);border-radius:10px;font-size:12px;color:var(--text-secondary);line-height:1.6">
+      <strong>推送</strong>：生成二维码，手机扫码后自动导入<br>
+      <strong>接收</strong>：粘贴电脑发来的同步链接<br>
+      💡 先在电脑上"推送"生成二维码/链接，再在手机上扫码或粘链接
+    </div>
+
     <div style="margin-top:20px;padding:14px;background:var(--sky-light);border-radius:12px"><p style="font-size:13px;color:var(--text-secondary);line-height:1.6">💡 数据存在手机本地，换手机时导出 json → 新手机导入即可。</p></div>
+  </div>
+</div>
+
+<!-- 推送结果弹窗（二维码 + 链接） -->
+<div class="modal-overlay" id="syncPushModal">
+  <div class="modal">
+    <div class="modal-header"><h2>📱 同步二维码</h2><button class="modal-close" onclick="closeSyncPush()">×</button></div>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px">用手机相机扫码即可同步</p>
+    <div id="syncQrBox" style="display:flex;justify-content:center;padding:16px;background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:14px"></div>
+    <div style="padding:12px;background:var(--bg);border-radius:10px;font-size:13px;word-break:break-all" id="syncUrl"></div>
+    <div class="data-actions" style="margin-top:12px"><button onclick="copySyncUrl()">📋 复制链接</button><button onclick="closeSyncPush()">完成</button></div>
+  </div>
+</div>
+
+<!-- 拉取弹窗（输入链接或粘贴 JSON） -->
+<div class="modal-overlay" id="syncPullModal">
+  <div class="modal">
+    <div class="modal-header"><h2>📥 接收同步数据</h2><button class="modal-close" onclick="closeSyncPull()">×</button></div>
+    <p style="font-size:14px;color:var(--text-secondary);margin-bottom:12px">粘贴电脑发来的同步链接</p>
+    <div class="form-group"><input type="text" id="syncUrlInput" placeholder="https://..."></div>
+    <button class="btn-primary" onclick="syncPull()">导入菜谱</button>
+    <button class="btn-secondary" onclick="closeSyncPull()">取消</button>
   </div>
 </div>
 
@@ -267,10 +345,28 @@ header h1{font-size:20px;font-weight:600;letter-spacing:.5px}
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script>
+const SYNC_PWA_URL=location.origin+location.pathname;
 let recipes=[],currentId=null,editingId=null,currentCategory='',pendingDeleteId=null;
 
-function init(){loadFromStorage();renderList();renderCategoryTabs()}
+function init(){loadFromStorage();renderList();renderCategoryTabs();checkAutoSync()}
+
+function checkAutoSync(){
+  if(!location.hash.startsWith('#d='))return;
+  const encoded=location.hash.slice(3).split('&')[0];
+  // 清掉 hash，避免重复触发
+  history.replaceState(null,'',location.pathname);
+  try{
+    const data=decodeRecipes(encoded);
+    if(!Array.isArray(data))throw new Error('数据格式错误');
+    data.forEach(fixRecipe);
+    showSyncMergeConfirm(data);
+  }catch(err){
+    toast('同步失败：'+err.message);
+  }
+}
 
 function loadFromStorage(){
   const raw=localStorage.getItem('cookbook_recipes');
@@ -441,9 +537,246 @@ function saveRecipe(){
   saveToStorage();closeAddModal();renderList();renderCategoryTabs();toast(editingId?'已更新 ✓':'已保存 ✓');
 }
 
+// ─── AI 图片导入（识图生成菜谱草稿）───────────────────────────────────────
+// Worker 中转地址（保护 API key，部署后填写）
+const AI_WORKER_URL = '';  // TODO: 部署 Cloudflare Worker 后填写
+
+let importImages = [];  // {b64, name}
+
+function showImportModal(){
+  document.getElementById('importModal').classList.add('active');
+  resetImportView();
+}
+
+function closeImportModal(){document.getElementById('importModal').classList.remove('active')}
+
+function resetImportView(){
+  importImages = [];
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importLoading').style.display = 'none';
+  document.getElementById('importError').style.display = 'none';
+  document.getElementById('importDropArea').style.display = 'block';
+  document.getElementById('import-file-input').value = '';
+}
+
+function handleImportFiles(files){
+  if(!files || !files.length) return;
+  const imgs = [...files].filter(f => f.type.startsWith('image/'));
+  if(!imgs.length){ showImportError('请选择图片文件'); return; }
+  importImages = [];
+  let done = 0;
+  imgs.forEach(file => {
+    compressImage(file, 800, 0.8).then(b64 => {
+      importImages.push({ b64, name: file.name });
+      done++;
+      if(done === imgs.length) showImportPreview();
+    }).catch(() => {
+      showImportError('图片处理失败：' + file.name);
+    });
+  });
+}
+
+// 图片压缩：最长边 maxSize，JPEG 质量 quality，返回 dataURL
+function compressImage(file, maxSize, quality){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if(width > height && width > maxSize){ height = height * maxSize / width; width = maxSize; }
+      else if(height > maxSize){ width = width * maxSize / height; height = maxSize; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片加载失败')); };
+    img.src = url;
+  });
+}
+
+function showImportPreview(){
+  document.getElementById('importDropArea').style.display = 'none';
+  document.getElementById('importPreview').style.display = 'block';
+  document.getElementById('importError').style.display = 'none';
+  document.getElementById('importPreviewLabel').textContent = `已选 ${importImages.length} 张图片`;
+  document.getElementById('importPreviewThumbs').innerHTML = importImages.map((im, i) =>
+    `<div style="position:relative;flex-shrink:0">
+       <img src="${im.b64}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+       <span style="position:absolute;top:-6px;right:-6px;background:var(--teal);color:#fff;width:20px;height:20px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center">${i+1}</span>
+     </div>`).join('');
+}
+
+function clearImportSelection(){ resetImportView(); }
+
+function showImportError(msg){
+  document.getElementById('importError').style.display = 'block';
+  document.getElementById('importErrorText').textContent = msg;
+}
+
+async function startImport(){
+  if(!AI_WORKER_URL){ showImportError('AI 服务还未部署，请先完成 Cloudflare Worker 配置'); return; }
+  if(!importImages.length){ toast('请先选择图片'); return; }
+
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importLoading').style.display = 'block';
+  document.getElementById('importError').style.display = 'none';
+  document.getElementById('importLoadingIcon').textContent = '🔍';
+  document.getElementById('importLoadingText').textContent = '正在识别图片…';
+  document.getElementById('importLoadingSub').textContent = `AI 正在读取 ${importImages.length} 张图片的内容`;
+
+  try{
+    const res = await fetch(AI_WORKER_URL + '/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images: importImages.map(im => im.b64) })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error){ throw new Error(data.error || ('识别失败 HTTP ' + res.status)); }
+
+    document.getElementById('importLoading').style.display = 'none';
+    closeImportModal();
+    // 填充到添加菜谱表单，用户确认后保存
+    fillAddFormFromAI(data.recipe);
+    toast('AI 识别完成，请确认菜谱内容 ✓');
+  }catch(err){
+    document.getElementById('importLoading').style.display = 'none';
+    document.getElementById('importPreview').style.display = 'block';
+    showImportError('识别失败：' + err.message);
+  }
+}
+
+// AI 结果填充到添加菜谱表单
+function fillAddFormFromAI(recipe){
+  showAddModal(null);
+  if(recipe.name) document.getElementById('recipeName').value = recipe.name;
+  if(recipe.category) document.getElementById('recipeCategory').value = recipe.category;
+  if(recipe.source) document.getElementById('recipeSource').value = recipe.source;
+  if(recipe.ingredients && recipe.ingredients.length) document.getElementById('recipeIngredients').value = recipe.ingredients.join('\n');
+  if(recipe.prep && recipe.prep.length) document.getElementById('recipePrep').value = recipe.prep.join('\n');
+  if(recipe.pits && recipe.pits.length) document.getElementById('recipePits').value = recipe.pits.join('\n');
+  if(recipe.steps && recipe.steps.length) renderStepEditor(recipe.steps);
+}
+
 // ─── Export / Import ─────────────────────────────────────────────────────────
 function exportData(){if(!recipes.length){toast('没有数据可导出');return}const b=new Blob([JSON.stringify(recipes,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='做饭助手_'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(u);toast('已导出 ✓')}
 function importData(event){const f=event.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!Array.isArray(d))throw new Error('格式错误');d.forEach(fixRecipe);recipes=d;saveToStorage();renderList();renderCategoryTabs();closeDataModal();toast('已导入 '+d.length+' 条菜谱 ✓')}catch{toast('导入失败：文件格式不正确')}};r.readAsText(f);event.target.value=''}
+
+// ─── Cloud Sync (URL-encoded snapshot) ────────────────────────────────────────
+// 方案：菜谱 zlib 压缩 + base64 → 拼进 PWA URL 的 hash 段 → QR 码承载
+// 优势：纯前端、无第三方服务、无 CORS 问题、20 道菜都塞得下
+
+function encodeRecipes(data){
+  // 关键技巧：JSON.stringify 第二参数用 identity 函数 → 不转义中文/emoji/特殊字符
+  const compact=JSON.stringify(data,(k,v)=>v);
+  const bytes=new TextEncoder().encode(compact);
+  const compressed=pako.deflate(bytes);
+  let bin='';
+  for(let i=0;i<compressed.length;i++)bin+=String.fromCharCode(compressed[i]);
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+function decodeRecipes(encoded){
+  let b64=encoded.replace(/-/g,'+').replace(/_/g,'/');
+  while(b64.length%4)b64+='=';
+  const bin=atob(b64);
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  const json=new TextDecoder().decode(pako.inflate(bytes));
+  return JSON.parse(json);
+}
+
+function syncPush(){
+  if(!recipes.length){toast('没有菜谱可推送');return}
+  const btn=event?.target;if(btn){btn.disabled=true;btn.textContent='生成中…'}
+  try{
+    const encoded=encodeRecipes(recipes);
+    const pwaUrl=SYNC_PWA_URL+'#d='+encoded;
+    showSyncPushResult(pwaUrl);
+    toast('已生成同步二维码 ✓');
+  }catch(err){
+    toast('生成失败：'+err.message);
+    console.error(err);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='📤 推送到手机'}
+  }
+}
+
+let _currentSyncUrl='';
+function showSyncPushResult(pwaUrl,pasteUrl){
+  _currentSyncUrl=pwaUrl;
+  document.getElementById('syncUrl').textContent=pwaUrl;
+  const box=document.getElementById('syncQrBox');box.innerHTML='';
+  // davidshimjs/qrcodejs API: new QRCode(element, options)
+  if(typeof QRCode!=='undefined'){
+    try{
+      // 估算 QR 容量，按 URL 长度自适应尺寸
+      const len=pwaUrl.length;
+      let qrSize=240;
+      // typeNumber: 0 = auto. QRCode 库通过 text 自动判断 version
+      new QRCode(box,{text:pwaUrl,width:qrSize,height:qrSize,colorDark:'#0E6973',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+      // davidshimjs 会插入一个 canvas + 一个 img，把 img 隐藏
+      const img=box.querySelector('img');const canvas=box.querySelector('canvas');
+      if(img)img.style.display='none';
+      if(canvas){canvas.style.maxWidth='240px';canvas.style.height='auto';}
+    }catch(err){
+      box.innerHTML='<div style="color:var(--danger);font-size:13px">二维码生成失败：'+err.message+'<br>请用下方链接同步</div>';
+      console.error(err);
+    }
+  }else{
+    box.innerHTML='<div style="color:var(--danger);font-size:13px">二维码库加载失败，请用链接同步</div>';
+  }
+  document.getElementById('syncPushModal').classList.add('active');
+  document.getElementById('dataModal').classList.remove('active');
+}
+function closeSyncPush(){document.getElementById('syncPushModal').classList.remove('active')}
+function copySyncUrl(){navigator.clipboard.writeText(_currentSyncUrl).then(()=>toast('已复制链接 ✓')).catch(()=>toast('复制失败'))}
+
+function showSyncPull(){
+  document.getElementById('syncPullModal').classList.add('active');
+  document.getElementById('dataModal').classList.remove('active');
+}
+function closeSyncPull(){document.getElementById('syncPullModal').classList.remove('active')}
+
+function syncPull(){
+  let input=document.getElementById('syncUrlInput').value.trim();
+  if(!input){toast('请输入链接');return}
+  const btn=event?.target;if(btn){btn.disabled=true;btn.textContent='导入中…'}
+  try{
+    // 提取 #d=<base64> 或 URL 里的 #d= 部分
+    let encoded='';
+    if(input.includes('#d='))encoded=input.split('#d=')[1].split('#')[0].split('?')[0];
+    else if(input.startsWith('eyJ')||input.startsWith('H4sI'))encoded=input;  // 兼容纯 base64
+    else throw new Error('无法识别链接（需要包含 #d=）');
+    const data=decodeRecipes(encoded);
+    if(!Array.isArray(data))throw new Error('数据格式错误');
+    data.forEach(fixRecipe);
+    localStorage.setItem('cookbook_last_sync',input);
+    showSyncMergeConfirm(data);
+  }catch(err){
+    toast('导入失败：'+err.message);console.error(err);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='导入菜谱'}
+  }
+}
+
+function showSyncMergeConfirm(remote,pasteId){
+  const existing=new Set(recipes.map(r=>r.id));
+  const newOnly=remote.filter(r=>!existing.has(r.id));
+  const conflicts=remote.filter(r=>existing.has(r.id));
+  let msg=`云端共 ${remote.length} 条菜谱\n`;
+  if(newOnly.length)msg+=`· ${newOnly.length} 条新菜谱可直接导入\n`;
+  if(conflicts.length)msg+=`· ${conflicts.length} 条本地已有（云端更新会覆盖本地）\n`;
+  msg+='\n选择合并方式：';
+  const ok=confirm(msg+'\n\n【确定】=全部覆盖（用云端版本替换本地）\n【取消】=稍后再说');
+  if(!ok){closeSyncPull();return}
+  recipes=remote;
+  saveToStorage();renderList();renderCategoryTabs();
+  closeSyncPull();
+  toast(`已同步 ${remote.length} 条 ✓`);
+}
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}

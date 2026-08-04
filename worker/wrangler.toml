@@ -1,0 +1,10 @@
+name = "cookbook-ai-import"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# 部署时用环境变量注入（不要写进仓库）：
+# 1. 在 Cloudflare 控制台 → Worker → Settings → Variables 添加：
+#    LLM_API_KEY = 你的三方代理 key
+#    LLM_BASE_URL = https://api.llm-token.cn/v1
+#    LLM_MODEL = claude-sonnet-4-6
+# 2. 或者本地 wrangler secret put LLM_API_KEY
