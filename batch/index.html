@@ -3,96 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>21 道菜谱 · 同步入库</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; background: #fff7ed; color: #2a1a0a; padding: 24px 16px; max-width: 600px; margin: 0 auto; }
-  h1 { font-size: 22px; margin-bottom: 6px; }
-  .sub { color: #8b6f4e; font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
-  .sub b { color: #c95a18; }
-  .batch { background: #fff; border: 2px solid #f5c89a; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
-  .batch h2 { font-size: 16px; color: #c95a18; margin-bottom: 8px; }
-  .items { font-size: 14px; color: #4a3a2a; line-height: 1.7; margin-bottom: 12px; }
-  .items span { display: inline-block; background: #fef3e6; padding: 2px 8px; border-radius: 6px; margin: 2px; }
-  .btn { display: block; width: 100%; padding: 14px; background: #c95a18; color: #fff; text-align: center; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600; }
-  .btn:active { background: #a84812; }
-  .note { background: #fffbeb; border-left: 3px solid #f5c89a; padding: 10px 12px; font-size: 12px; color: #6b5a4a; line-height: 1.6; margin: 14px 0; border-radius: 4px; }
-  .stat { text-align: center; color: #8b6f4e; font-size: 12px; margin-top: 20px; }
-</style>
-</head>
-<body>
-<h1>🍳 21 道菜谱 · 同步入库</h1>
-<div class="sub">点下面 4 个按钮，每个链接打开会弹<b>合并/替换/取消</b>三选框，<b>选合并</b>把该批菜加进你的做饭助手。4 个挨个点完即可。</div>
-
-<div class="batch">
-  <h2>第 1 批（5 道）</h2>
-  <div class="items">
-    <span>丝瓜鸡蛋汤</span><span>蒜蓉油菜</span><span>酱炒韭菜鸡蛋</span><span>番茄土豆肥牛锅</span><span>蒜香茄子</span>
-  </div>
-  <a class="btn" id="b1" href="#">打开第 1 批</a>
-</div>
-
-<div class="batch">
-  <h2>第 2 批（5 道）</h2>
-  <div class="items">
-    <span>番茄丝瓜鸡蛋</span><span>番茄炒蛋</span><span>干锅包菜</span><span>凉拌白菜心</span><span>锅包肉</span>
-  </div>
-  <a class="btn" id="b2" href="#">打开第 2 批</a>
-</div>
-
-<div class="batch">
-  <h2>第 3 批（5 道）</h2>
-  <div class="items">
-    <span>油炸花生米</span><span>干锅菜花</span><span>番茄鱼片</span><span>猪肉炖粉条</span><span>蒜香茄子 2</span>
-  </div>
-  <a class="btn" id="b3" href="#">打开第 3 批</a>
-</div>
-
-<div class="batch">
-  <h2>第 4 批（6 道）</h2>
-  <div class="items">
-    <span>手撕包菜</span><span>鸡蛋辣椒焖子</span><span>醋溜白菜</span><span>葱烧豆腐</span><span>芦笋炒虾仁</span><span>茭白炒肉</span>
-  </div>
-  <a class="btn" id="b4" href="#">打开第 4 批</a>
-</div>
-
-<div class="note">
-提示：每个链接打开后页面会提示「检测到共享菜谱」，点「🔀 合并到现有菜谱」即可。如果意外点错选了替换，关掉再点一次即可（不会破坏已入库的菜）。
-</div>
-
-<div class="stat">菜谱来源：小红书 21 条笔记 · 由 Hermes 抓取转写</div>
-
+<title>导入 21 道菜</title>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script>
+// 读 URL 参数 ?n=1 取 batch1.txt，转成同步链接后自动跳转
 (async () => {
-  // 预加载 pako（如果做饭助手页面已加载，从那边取；这里独立部署走 CDN）
-  if (typeof pako === 'undefined') {
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js';
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
+  const params = new URLSearchParams(location.search);
+  const n = params.get('n') || '1';
+  try {
+    const r = await fetch('./batch' + n + '.txt');
+    const url = (await r.text()).trim();
+    // 把 #d=xxx 改成 #sync=1&d=xxx 让做饭助手走自动同步路径
+    location.replace(url);
+  } catch (e) {
+    document.body.innerText = '加载失败：' + e.message;
   }
-  // 菜谱数据内嵌在 4 个 txt 文件中：fetch 拿 / 同步链接/0X-*.txt
-  // 用户从桌面打开 file:// 时浏览器可能拦 fetch，改用 fetch 兜底
-  const r1 = await fetch('./batch1.txt');
-  const t1 = (await r1.text()).trim();
-  const r2 = await fetch('./batch2.txt');
-  const t2 = (await r2.text()).trim();
-  const r3 = await fetch('./batch3.txt');
-  const t3 = (await r3.text()).trim();
-  const r4 = await fetch('./batch4.txt');
-  const t4 = (await r4.text()).trim();
-
-  // 每个 txt 是完整 URL 格式: https://...#d=... 直接用就行
-  document.getElementById('b1').href = t1;
-  document.getElementById('b2').href = t2;
-  document.getElementById('b3').href = t3;
-  document.getElementById('b4').href = t4;
-})().catch(e => {
-  document.body.insertAdjacentHTML('afterbegin',
-    '<div style="background:#fee;padding:12px;border:1px solid #fcc;margin-bottom:14px;border-radius:6px;font-size:13px;color:#900;">加载失败：' + e.message + ' — 请直接双击 同步链接/ 目录下的 4 个 .txt 文件，每个文件里是完整 URL，复制到 Safari 地址栏打开。</div>');
-});
+})();
 </script>
-</body>
+</head>
+<body style="font-family:sans-serif;padding:20px">正在跳转...</body>
 </html>
